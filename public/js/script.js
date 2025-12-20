@@ -19,29 +19,31 @@ async function initializeSupabase() {
     console.log("⚠️ Supabase already initialized");
     return;
   }
-  
+
   try {
     const response = await fetch("/api/supabase-config");
     const config = await response.json();
-    
+
     if (config.url && config.anonKey) {
-      window.supabaseClient = window.supabase.createClient(config.url, config.anonKey);
+      window.supabaseClient = window.supabase.createClient(
+        config.url,
+        config.anonKey
+      );
       console.log("✅ Supabase initialized successfully");
-      
+
       // Set up auth state change listener for password reset
       window.supabaseClient.auth.onAuthStateChange((event, session) => {
-        console.log('🔔 Auth event:', event);
-        
-        if (event === 'PASSWORD_RECOVERY') {
-          console.log('🔑 Password recovery event detected');
+        console.log("🔔 Auth event:", event);
+
+        if (event === "PASSWORD_RECOVERY") {
+          console.log("🔑 Password recovery event detected");
           showResetPasswordModal();
         }
-        
-        if (event === 'SIGNED_IN' && session) {
-          console.log('✅ User signed in:', session.user.email);
+
+        if (event === "SIGNED_IN" && session) {
+          console.log("✅ User signed in:", session.user.email);
         }
       });
-      
     } else {
       console.error("❌ Supabase config missing");
     }
@@ -51,81 +53,85 @@ async function initializeSupabase() {
 }
 
 // Call initialization immediately
-(async function() {
+(async function () {
   await initializeSupabase();
-  
+
   // Check if this is a password reset callback
   const hash = window.location.hash;
-  if (hash && hash.includes('access_token') && hash.includes('type=recovery')) {
-    console.log('🔑 Password reset detected - processing token manually...');
-    
+  if (hash && hash.includes("access_token") && hash.includes("type=recovery")) {
+    console.log("🔑 Password reset detected - processing token manually...");
+
     // Process the recovery token manually
     const success = await processRecoveryToken();
-    
+
     if (success) {
-      console.log('✅ Token processed, showing reset modal');
+      console.log("✅ Token processed, showing reset modal");
       showResetPasswordModal();
     } else {
-      console.error('❌ Failed to process token');
-      showNotification('❌ Invalid or expired reset link. Please request a new one.');
+      console.error("❌ Failed to process token");
+      showNotification(
+        "❌ Invalid or expired reset link. Please request a new one."
+      );
       // Clear hash and show auth modal
-      window.history.replaceState(null, '', window.location.pathname);
+      window.history.replaceState(null, "", window.location.pathname);
       checkExistingSession();
     }
     return;
   }
-  
+
   // Normal session check for regular logins
   checkExistingSession();
 })();
 
 async function processRecoveryToken() {
   const hash = window.location.hash;
-  
-  if (!hash.includes('access_token') || !hash.includes('type=recovery')) {
+
+  if (!hash.includes("access_token") || !hash.includes("type=recovery")) {
     return false;
   }
-  
-  console.log('🔄 Processing recovery token manually...');
-  
+
+  console.log("🔄 Processing recovery token manually...");
+
   // Parse the hash - remove the # first
   const hashParams = hash.substring(1);
   const params = new URLSearchParams(hashParams);
-  const token = params.get('access_token');
-  const type = params.get('type');
-  
-  console.log('📋 Token type:', type);
-  console.log('📋 Token length:', token ? token.length : 0);
-  
-  if (!token || type !== 'recovery') {
-    console.error('❌ Invalid recovery parameters');
+  const token = params.get("access_token");
+  const type = params.get("type");
+
+  console.log("📋 Token type:", type);
+  console.log("📋 Token length:", token ? token.length : 0);
+
+  if (!token || type !== "recovery") {
+    console.error("❌ Invalid recovery parameters");
     return false;
   }
-  
+
   try {
     // Use verifyOtp for recovery tokens (this is the correct Supabase method)
-    console.log('🔐 Verifying recovery token with Supabase...');
-    
+    console.log("🔐 Verifying recovery token with Supabase...");
+
     const { data, error } = await window.supabaseClient.auth.verifyOtp({
       token_hash: token,
-      type: 'recovery'
+      type: "recovery",
     });
-    
+
     if (error) {
-      console.error('❌ Error verifying token:', error);
+      console.error("❌ Error verifying token:", error);
       return false;
     }
-    
+
     if (!data.session) {
-      console.error('❌ No session returned from verification');
+      console.error("❌ No session returned from verification");
       return false;
     }
-    
-    console.log('✅ Recovery session established for:', data.session.user.email);
+
+    console.log(
+      "✅ Recovery session established for:",
+      data.session.user.email
+    );
     return true;
-    
   } catch (error) {
-    console.error('❌ Error processing recovery token:', error);
+    console.error("❌ Error processing recovery token:", error);
     return false;
   }
 }
@@ -134,16 +140,16 @@ async function processRecoveryToken() {
 const bannerMessages = [
   {
     text: '🚀 App in development! Found a bug? Report it to <a href="mailto:info@sendelightgifts.com">info@sendelightgifts.com</a>',
-    icon: '🐛'
+    icon: "🔔",
   },
   {
     text: '💡 Have ideas for new features? Email us at <a href="mailto:info@sendelightgifts.com">info@sendelightgifts.com</a>',
-    icon: '✨'
+    icon: "✨",
   },
   {
     text: '🎯 Help us improve! Share your feedback at <a href="mailto:info@sendelightgifts.com">info@sendelightgifts.com</a>',
-    icon: '💬'
-  }
+    icon: "💬",
+  },
 ];
 
 let currentBannerIndex = 0;
@@ -155,10 +161,10 @@ function showBanner() {
   // Don't show if user dismissed it
   if (bannerDismissed) return;
 
-  const banner = document.getElementById('floatingBanner');
-  const bannerText = document.getElementById('bannerText');
-  const bannerIcon = document.querySelector('.banner-icon');
-  
+  const banner = document.getElementById("floatingBanner");
+  const bannerText = document.getElementById("bannerText");
+  const bannerIcon = document.querySelector(".banner-icon");
+
   if (!banner || !bannerText || !bannerIcon) return;
 
   // Set current message
@@ -167,11 +173,11 @@ function showBanner() {
   bannerIcon.textContent = currentMessage.icon;
 
   // Show banner
-  banner.classList.add('show');
+  banner.classList.add("show");
 
   // Hide after 8 seconds
   bannerTimeout = setTimeout(() => {
-    banner.classList.remove('show');
+    banner.classList.remove("show");
   }, 8000);
 
   // Move to next message
@@ -179,14 +185,14 @@ function showBanner() {
 }
 
 function closeBanner() {
-  const banner = document.getElementById('floatingBanner');
+  const banner = document.getElementById("floatingBanner");
   if (banner) {
-    banner.classList.remove('show');
+    banner.classList.remove("show");
   }
-  
+
   // Mark as dismissed for this session
   bannerDismissed = true;
-  
+
   // Clear intervals
   if (bannerTimeout) clearTimeout(bannerTimeout);
   if (bannerCycleInterval) clearInterval(bannerCycleInterval);
@@ -205,30 +211,30 @@ function initializeBanner() {
 }
 
 // Initialize banner when page loads
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeBanner);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeBanner);
 } else {
   initializeBanner();
 }
 
 // Show reset password modal directly
 function showResetPasswordModal() {
-  console.log('📝 Showing reset password modal');
-  
+  console.log("📝 Showing reset password modal");
+
   const resetModal = document.getElementById("resetPasswordModal");
   const authModal = document.getElementById("authModal");
-  
+
   // Hide auth modal
   authModal.style.display = "none";
-  
+
   // Show reset modal
   resetModal.style.display = "flex";
   resetModal.style.opacity = "0";
-  
+
   setTimeout(() => {
     resetModal.style.opacity = "1";
   }, 100);
-  
+
   // Focus on password input
   document.getElementById("resetNewPassword").focus();
 }
@@ -236,20 +242,20 @@ function showResetPasswordModal() {
 // Toggle password visibility
 function togglePasswordVisibility(inputId, buttonElement) {
   const input = document.getElementById(inputId);
-  const isPassword = input.type === 'password';
-  
+  const isPassword = input.type === "password";
+
   // Toggle input type
-  input.type = isPassword ? 'text' : 'password';
-  
+  input.type = isPassword ? "text" : "password";
+
   // Toggle button icon
-  buttonElement.textContent = isPassword ? '👁️' : '👁️‍🗨️';
-  
-// Add animation
-buttonElement.style.transform = 'translateY(-50%) scale(1.2)';
-buttonElement.style.transition = 'all 0.15s ease';
-setTimeout(() => {
-  buttonElement.style.transform = 'translateY(-50%) scale(1)';
-}, 150);
+  buttonElement.textContent = isPassword ? "👁️" : "👁️‍🗨️";
+
+  // Add animation
+  buttonElement.style.transform = "translateY(-50%) scale(1.2)";
+  buttonElement.style.transition = "all 0.15s ease";
+  setTimeout(() => {
+    buttonElement.style.transform = "translateY(-50%) scale(1)";
+  }, 150);
 }
 
 let currentCharacter = "tom",
@@ -260,7 +266,7 @@ let currentCharacter = "tom",
   socialStoriesMode = false,
   calmBreathingMode = false,
   feelingsHelperMode = false,
-  colorsShapesMode=false,
+  colorsShapesMode = false,
   galleryMode = false,
   memoryGameMode = false;
 let currentUtterance = null,
@@ -329,21 +335,24 @@ async function handleForgotPassword() {
 
   try {
     // Send reset email - user will click link and return to this page
-    const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin,
-    });
+    const { error } = await window.supabaseClient.auth.resetPasswordForEmail(
+      email,
+      {
+        redirectTo: window.location.origin,
+      }
+    );
 
     if (error) {
       errorElement.textContent = `❌ ${error.message}`;
       return;
     }
 
-    successElement.textContent = "✅ Password reset link sent! Check your email (including spam folder). Link valid for 1 hour.";
-    
+    successElement.textContent =
+      "✅ Password reset link sent! Check your email (including spam folder). Link valid for 1 hour.";
+
     setTimeout(() => {
       hideForgotPassword();
     }, 4000);
-    
   } catch (error) {
     console.error("Forgot password error:", error);
     errorElement.textContent = "⚠️ Connection error. Please try again.";
@@ -354,7 +363,9 @@ async function handleForgotPassword() {
 // Handle actual password reset when user comes back from email link
 async function handlePasswordReset() {
   const newPassword = document.getElementById("resetNewPassword").value.trim();
-  const confirmPassword = document.getElementById("resetConfirmPassword").value.trim();
+  const confirmPassword = document
+    .getElementById("resetConfirmPassword")
+    .value.trim();
   const errorElement = document.getElementById("resetPasswordError");
   const successElement = document.getElementById("resetPasswordSuccess");
 
@@ -377,56 +388,62 @@ async function handlePasswordReset() {
   }
 
   try {
-    console.log('🔄 Updating password...');
-    
+    console.log("🔄 Updating password...");
+
     // First, get the current session
-    const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
-    
+    const {
+      data: { session },
+      error: sessionError,
+    } = await window.supabaseClient.auth.getSession();
+
     if (sessionError || !session) {
-      console.error('Session error:', sessionError);
-      errorElement.textContent = "❌ Session expired. Please request a new reset link.";
-      
+      console.error("Session error:", sessionError);
+      errorElement.textContent =
+        "❌ Session expired. Please request a new reset link.";
+
       // Redirect back to forgot password
       setTimeout(() => {
         document.getElementById("resetPasswordModal").style.display = "none";
         document.getElementById("authModal").style.display = "flex";
         showForgotPassword();
-        window.history.replaceState(null, '', window.location.pathname);
+        window.history.replaceState(null, "", window.location.pathname);
       }, 2000);
       return;
     }
-    
-    console.log('✅ Valid session found, updating password...');
-    
+
+    console.log("✅ Valid session found, updating password...");
+
     // Now update the password
     const { data, error } = await window.supabaseClient.auth.updateUser({
-      password: newPassword
+      password: newPassword,
     });
 
     if (error) {
-      console.error('Password update error:', error);
+      console.error("Password update error:", error);
       errorElement.textContent = `❌ ${error.message}`;
       return;
     }
 
-    console.log('✅ Password updated successfully');
-    successElement.textContent = "✅ Password reset successful! Redirecting to login...";
-    
+    console.log("✅ Password updated successfully");
+    successElement.textContent =
+      "✅ Password reset successful! Redirecting to login...";
+
     // Clear fields
     document.getElementById("resetNewPassword").value = "";
     document.getElementById("resetConfirmPassword").value = "";
-    
+
     // Clear the hash
-    window.history.replaceState(null, '', window.location.pathname);
-    
+    window.history.replaceState(null, "", window.location.pathname);
+
     // Sign out and show login after 2 seconds
     setTimeout(async () => {
       await window.supabaseClient.auth.signOut();
       document.getElementById("resetPasswordModal").style.display = "none";
       document.getElementById("authModal").style.display = "flex";
-      showNotification("✅ Password updated! Please sign in with your new password.");
+      showNotification(
+        "✅ Password updated! Please sign in with your new password."
+      );
     }, 2000);
-    
   } catch (error) {
     console.error("Password reset error:", error);
     errorElement.textContent = "⚠️ Connection error. Please try again.";
@@ -458,29 +475,27 @@ function checkLevelProgress() {
 
 async function triggerLevelUp() {
   showNotification(`🎉 LEVEL UP! You're now Level ${userLevel}! 🎊`);
-  
+
   // Save level to Supabase if user is logged in
   if (currentUser && window.supabaseClient) {
     try {
       await window.supabaseClient
-        .from('profiles')
-        .update({ 
+        .from("profiles")
+        .update({
           user_level: userLevel,
-          session_start_time: sessionStartTime 
+          session_start_time: sessionStartTime,
         })
-        .eq('id', currentUser.id);
-      
+        .eq("id", currentUser.id);
+
       // Also save to level history
-      await window.supabaseClient
-        .from('user_level_history')
-        .insert({
-          user_id: currentUser.id,
-          level: userLevel
-        });
-      
-      console.log('✅ Level saved to database');
+      await window.supabaseClient.from("user_level_history").insert({
+        user_id: currentUser.id,
+        level: userLevel,
+      });
+
+      console.log("✅ Level saved to database");
     } catch (error) {
-      console.error('Error saving level:', error);
+      console.error("Error saving level:", error);
     }
   }
 }
@@ -686,20 +701,20 @@ const shapesData = {
     { shape: "●", name: "Circle", color: "#4fc3f7" },
     { shape: "■", name: "Square", color: "#66bb6a" },
     { shape: "▲", name: "Triangle", color: "#ffa726" },
-    { shape: "⬟", name: "Pentagon", color: "#ab47bc" },
+    { shape: "⬠", name: "Pentagon", color: "#ab47bc" },
   ],
   3: [
     { shape: "●", name: "Circle", color: "#4fc3f7" },
     { shape: "■", name: "Square", color: "#66bb6a" },
     { shape: "▲", name: "Triangle", color: "#ffa726" },
-    { shape: "⬟", name: "Pentagon", color: "#ab47bc" },
+    { shape: "⬠", name: "Pentagon", color: "#ab47bc" },
     { shape: "⬡", name: "Hexagon", color: "#ef5350" },
   ],
   4: [
     { shape: "●", name: "Circle", color: "#4fc3f7" },
     { shape: "■", name: "Square", color: "#66bb6a" },
     { shape: "▲", name: "Triangle", color: "#ffa726" },
-    { shape: "⬟", name: "Pentagon", color: "#ab47bc" },
+    { shape: "⬠", name: "Pentagon", color: "#ab47bc" },
     { shape: "⬡", name: "Hexagon", color: "#ef5350" },
     { shape: "◆", name: "Diamond", color: "#ffd54f" },
   ],
@@ -707,70 +722,70 @@ const shapesData = {
     { shape: "●", name: "Circle", color: "#4fc3f7" },
     { shape: "■", name: "Square", color: "#66bb6a" },
     { shape: "▲", name: "Triangle", color: "#ffa726" },
-    { shape: "⬟", name: "Pentagon", color: "#ab47bc" },
+    { shape: "⬠", name: "Pentagon", color: "#ab47bc" },
     { shape: "⬡", name: "Hexagon", color: "#ef5350" },
     { shape: "◆", name: "Diamond", color: "#ffd54f" },
-    { shape: "▬", name: "Rectangle", color: "#42a5f5" },
+    { shape: "▭", name: "Rectangle", color: "#42a5f5" },
   ],
   6: [
     { shape: "●", name: "Circle", color: "#4fc3f7" },
     { shape: "■", name: "Square", color: "#66bb6a" },
     { shape: "▲", name: "Triangle", color: "#ffa726" },
-    { shape: "⬟", name: "Pentagon", color: "#ab47bc" },
+    { shape: "⬠", name: "Pentagon", color: "#ab47bc" },
     { shape: "⬡", name: "Hexagon", color: "#ef5350" },
     { shape: "◆", name: "Diamond", color: "#ffd54f" },
-    { shape: "▬", name: "Rectangle", color: "#42a5f5" },
-    { shape: "⭐", name: "Star", color: "#ffeb3b" },
+    { shape: "▭", name: "Rectangle", color: "#42a5f5" },
+    { shape: "★", name: "Star", color: "#ffeb3b" },
   ],
   7: [
     { shape: "●", name: "Circle", color: "#4fc3f7" },
     { shape: "■", name: "Square", color: "#66bb6a" },
     { shape: "▲", name: "Triangle", color: "#ffa726" },
-    { shape: "⬟", name: "Pentagon", color: "#ab47bc" },
+    { shape: "⬠", name: "Pentagon", color: "#ab47bc" },
     { shape: "⬡", name: "Hexagon", color: "#ef5350" },
     { shape: "◆", name: "Diamond", color: "#ffd54f" },
-    { shape: "▬", name: "Rectangle", color: "#42a5f5" },
-    { shape: "⭐", name: "Star", color: "#ffeb3b" },
+    { shape: "▭", name: "Rectangle", color: "#42a5f5" },
+    { shape: "★", name: "Star", color: "#ffeb3b" },
     { shape: "♥", name: "Heart", color: "#e91e63" },
   ],
   8: [
     { shape: "●", name: "Circle", color: "#4fc3f7" },
     { shape: "■", name: "Square", color: "#66bb6a" },
     { shape: "▲", name: "Triangle", color: "#ffa726" },
-    { shape: "⬟", name: "Pentagon", color: "#ab47bc" },
+    { shape: "⬠", name: "Pentagon", color: "#ab47bc" },
     { shape: "⬡", name: "Hexagon", color: "#ef5350" },
     { shape: "◆", name: "Diamond", color: "#ffd54f" },
-    { shape: "▬", name: "Rectangle", color: "#42a5f5" },
-    { shape: "⭐", name: "Star", color: "#ffeb3b" },
+    { shape: "▭", name: "Rectangle", color: "#42a5f5" },
+    { shape: "★", name: "Star", color: "#ffeb3b" },
     { shape: "♥", name: "Heart", color: "#e91e63" },
-    { shape: "⬭", name: "Octagon", color: "#26c6da" },
+    { shape: "⯃", name: "Octagon", color: "#26c6da" },
   ],
   9: [
     { shape: "●", name: "Circle", color: "#4fc3f7" },
     { shape: "■", name: "Square", color: "#66bb6a" },
     { shape: "▲", name: "Triangle", color: "#ffa726" },
-    { shape: "⬟", name: "Pentagon", color: "#ab47bc" },
+    { shape: "⬠", name: "Pentagon", color: "#ab47bc" },
     { shape: "⬡", name: "Hexagon", color: "#ef5350" },
     { shape: "◆", name: "Diamond", color: "#ffd54f" },
-    { shape: "▬", name: "Rectangle", color: "#42a5f5" },
-    { shape: "⭐", name: "Star", color: "#ffeb3b" },
+    { shape: "▭", name: "Rectangle", color: "#42a5f5" },
+    { shape: "★", name: "Star", color: "#ffeb3b" },
     { shape: "♥", name: "Heart", color: "#e91e63" },
-    { shape: "⬭", name: "Octagon", color: "#26c6da" },
-    { shape: "⬢", name: "Parallelogram", color: "#9575cd" },
+    { shape: "⯃", name: "Octagon", color: "#26c6da" },
+    { shape: "▱", name: "Parallelogram", color: "#9575cd" },
   ],
   10: [
     { shape: "●", name: "Circle", color: "#4fc3f7" },
     { shape: "■", name: "Square", color: "#66bb6a" },
     { shape: "▲", name: "Triangle", color: "#ffa726" },
-    { shape: "⬟", name: "Pentagon", color: "#ab47bc" },
+    { shape: "⬠", name: "Pentagon", color: "#ab47bc" },
     { shape: "⬡", name: "Hexagon", color: "#ef5350" },
     { shape: "◆", name: "Diamond", color: "#ffd54f" },
-    { shape: "▬", name: "Rectangle", color: "#42a5f5" },
-    { shape: "⭐", name: "Star", color: "#ffeb3b" },
+    { shape: "▭", name: "Rectangle", color: "#42a5f5" },
+    { shape: "★", name: "Star", color: "#ffeb3b" },
     { shape: "♥", name: "Heart", color: "#e91e63" },
-    { shape: "⬭", name: "Octagon", color: "#26c6da" },
-    { shape: "⬢", name: "Parallelogram", color: "#9575cd" },
-    { shape: "○", name: "Oval", color: "#78909c" },
+    { shape: "⯃", name: "Octagon", color: "#26c6da" },
+    { shape: "▱", name: "Parallelogram", color: "#9575cd" },
+    { shape: "⬭", name: "Oval (Ellipse)", color: "#78909c" },
   ],
 };
 
@@ -976,26 +991,28 @@ async function handleSignIn() {
   }
 
   try {
-    const { data, error } = await window.supabaseClient.auth.signInWithPassword({
-      email: email,
-      password: password,
-    });
+    const { data, error } = await window.supabaseClient.auth.signInWithPassword(
+      {
+        email: email,
+        password: password,
+      }
+    );
 
     if (error) {
       errorElement.textContent = `❌ ${error.message}`;
       return;
     }
 
-// Success! Get user's name and level from profile
+    // Success! Get user's name and level from profile
     const { data: profile } = await window.supabaseClient
-      .from('profiles')
-      .select('display_name, user_level, session_start_time')
-      .eq('id', data.user.id)
+      .from("profiles")
+      .select("display_name, user_level, session_start_time")
+      .eq("id", data.user.id)
       .single();
 
     currentUser = data.user;
-    currentUserName = profile ? profile.display_name : 'Friend';
-    
+    currentUserName = profile ? profile.display_name : "Friend";
+
     // Load user's saved level
     if (profile && profile.user_level) {
       userLevel = profile.user_level;
@@ -1003,11 +1020,13 @@ async function handleSignIn() {
       updateLevelDisplay();
       updateProgressBar();
     }
-    userRole = 'user';
+    userRole = "user";
     sessionToken = data.session.access_token;
 
-closeAuthModal();
-    showNotification(`🎉 Welcome back, ${currentUserName}! You're at Level ${userLevel}!`);
+    closeAuthModal();
+    showNotification(
+      `🎉 Welcome back, ${currentUserName}! You're at Level ${userLevel}!`
+    );
   } catch (error) {
     console.error("Sign in error:", error);
     errorElement.textContent = "⚠️ Connection error. Please try again.";
@@ -1019,7 +1038,9 @@ async function handleSignUp() {
   const name = document.getElementById("signUpName").value.trim();
   const email = document.getElementById("signUpEmail").value.trim();
   const password = document.getElementById("signUpPassword").value;
-  const confirmPassword = document.getElementById("signUpConfirmPassword").value;
+  const confirmPassword = document.getElementById(
+    "signUpConfirmPassword"
+  ).value;
   const errorElement = document.getElementById("signUpError");
 
   if (!name || !email || !password || !confirmPassword) {
@@ -1056,11 +1077,13 @@ async function handleSignUp() {
     // Success!
     currentUser = data.user;
     currentUserName = name;
-    userRole = 'user';
+    userRole = "user";
     sessionToken = data.session ? data.session.access_token : null;
 
     closeAuthModal();
-    showNotification(`🎉 Welcome, ${currentUserName}! Your account is created!`);
+    showNotification(
+      `🎉 Welcome, ${currentUserName}! Your account is created!`
+    );
   } catch (error) {
     console.error("Sign up error:", error);
     errorElement.textContent = "⚠️ Connection error. Please try again.";
@@ -1089,7 +1112,7 @@ async function logout() {
   if (currentUser) {
     await window.supabaseClient.auth.signOut();
   }
-  
+
   userRole = null;
   sessionToken = null;
   currentUser = null;
@@ -1099,7 +1122,6 @@ async function logout() {
   location.reload();
 }
 
-// Check existing session on load
 async function checkExistingSession() {
   // Wait for Supabase to initialize
   if (!window.supabaseClient) {
@@ -1108,39 +1130,54 @@ async function checkExistingSession() {
 
   // DON'T handle password reset here - it's handled in initialization
   const hash = window.location.hash;
-  if (hash && hash.includes('type=recovery')) {
-    console.log('⏭️ Skipping session check - password reset in progress');
+  if (hash && hash.includes("type=recovery")) {
+    console.log("⏭️ Skipping session check - password reset in progress");
     return;
   }
-  
+
+  const savedRole = localStorage.getItem("userRole");
+  if (savedRole === "guest") {
+    console.log("✅ Guest session found - continuing as guest");
+    userRole = "guest";
+    sessionToken = null;
+    currentUserName = "Guest";
+    closeAuthModal();
+    showNotification(`👤 Welcome back, Guest!`);
+    return;
+  }
+
   // Check if user has an active Supabase session
   if (window.supabaseClient) {
     try {
-      const { data: { session }, error } = await window.supabaseClient.auth.getSession();
-      
+      const {
+        data: { session },
+        error,
+      } = await window.supabaseClient.auth.getSession();
+
       if (error) {
         console.error("Session check error:", error);
       }
-      
+
       if (session) {
         // User is logged in with Supabase
         currentUser = session.user;
-        userRole = 'user';
+        userRole = "user";
         sessionToken = session.access_token;
-        
+
         // Get user's name and level from profile
-        const { data: profile, error: profileError } = await window.supabaseClient
-          .from('profiles')
-          .select('display_name, user_level, session_start_time')
-          .eq('id', session.user.id)
-          .single();
-        
+        const { data: profile, error: profileError } =
+          await window.supabaseClient
+            .from("profiles")
+            .select("display_name, user_level, session_start_time")
+            .eq("id", session.user.id)
+            .single();
+
         if (profileError) {
           console.error("Profile fetch error:", profileError);
-          currentUserName = 'Friend';
+          currentUserName = "Friend";
         } else {
-          currentUserName = profile ? profile.display_name : 'Friend';
-          
+          currentUserName = profile ? profile.display_name : "Friend";
+
           // Load user's saved level and progress
           if (profile && profile.user_level) {
             userLevel = profile.user_level;
@@ -1149,9 +1186,11 @@ async function checkExistingSession() {
             updateProgressBar();
           }
         }
-        
+
         closeAuthModal();
-        showNotification(`✅ Welcome back, ${currentUserName}! You're at Level ${userLevel}!`);
+        showNotification(
+          `✅ Welcome back, ${currentUserName}! You're at Level ${userLevel}!`
+        );
         return;
       }
     } catch (error) {
@@ -1160,7 +1199,6 @@ async function checkExistingSession() {
   }
 
   // Check for old admin session
-  const savedRole = localStorage.getItem("userRole");
   const savedToken = localStorage.getItem("sessionToken");
 
   if (savedRole === "admin" && savedToken) {
@@ -1419,18 +1457,22 @@ function checkColorsShapesMatch() {
 // Save Colors & Shapes Game session to Supabase
 async function saveColorsShapesGameToDatabase(gameType, level, completed) {
   if (!currentUser || !window.supabaseClient) return;
-  
+
   try {
-    await window.supabaseClient.from('colors_shapes_sessions').insert({
+    await window.supabaseClient.from("colors_shapes_sessions").insert({
       user_id: currentUser.id,
       game_type: gameType,
       level_reached: level,
-      completed: completed
+      completed: completed,
     });
-    
-    console.log(`✅ ${gameType} game ${completed ? 'completion' : 'progress'} saved to database`);
+
+    console.log(
+      `✅ ${gameType} game ${
+        completed ? "completion" : "progress"
+      } saved to database`
+    );
   } catch (error) {
-    console.error('Error saving colors/shapes game:', error);
+    console.error("Error saving colors/shapes game:", error);
   }
 }
 
@@ -1444,7 +1486,11 @@ function colorsShapesLevelComplete() {
     colorsShapesLevel++;
     // Save level progress to database
     if (currentUser && window.supabaseClient) {
-      saveColorsShapesGameToDatabase(colorsShapesGameType, colorsShapesLevel - 1, false);
+      saveColorsShapesGameToDatabase(
+        colorsShapesGameType,
+        colorsShapesLevel - 1,
+        false
+      );
     }
     setTimeout(() => initializeColorsShapesLevel(), 1500);
   } else {
@@ -1476,7 +1522,7 @@ function colorsShapesGameComplete() {
             <button class="send-button" onclick="sendMessage()" tabindex="0" id="sendButton">➤</button>
         </div>
     `;
-    // Save game completion to database
+  // Save game completion to database
   if (currentUser && window.supabaseClient) {
     saveColorsShapesGameToDatabase(colorsShapesGameType, 10, true);
   }
@@ -1749,7 +1795,7 @@ async function sendMessage() {
           data.mimeType
         );
       }
-// Save video generation to database
+      // Save video generation to database
       if (data.videoGenerated && currentUser && window.supabaseClient) {
         saveVideoGenerationToDatabase(message, data.videoData, data.mimeType);
       }
@@ -1764,11 +1810,10 @@ async function sendMessage() {
           data.mimeType
         );
       }
-// Save image generation to database
+      // Save image generation to database
       if (data.imageGenerated && currentUser && window.supabaseClient) {
         saveImageGenerationToDatabase(message, data.imageData, data.mimeType);
-      }
-      else {
+      } else {
         addMessage(
           "assistant",
           data.response,
@@ -1834,9 +1879,9 @@ async function sendMessage() {
 // Exit gallery mode properly
 function exitGalleryMode() {
   galleryMode = false;
-  
+
   const chatArea = document.getElementById("chatArea");
-  
+
   chatArea.innerHTML = `
     <div class="controls" id="controlsArea">
       <button class="control-btn" onclick="clearChat()">🗑️ Clear</button>
@@ -1850,13 +1895,15 @@ function exitGalleryMode() {
       <button class="send-button" onclick="sendMessage()" tabindex="0" id="sendButton">➤</button>
     </div>
   `;
-  
+
   const userName = currentUserName || "friend";
   const messagesContainer = document.getElementById("messages");
   lastMessageId++;
   const returnMessage = `## ✨ **Back to General Chat!** 🌈\n\n**Hi ${userName}!** Tom and Jerry are ready to chat! 🐱🐭\n\nWhat would you like to talk about? 💬`;
-  messagesContainer.innerHTML = `<div class="message assistant"><div class="message-avatar">🐱</div><div class="message-content">${processMarkdown(returnMessage)}</div></div>`;
-  
+  messagesContainer.innerHTML = `<div class="message assistant"><div class="message-avatar">🐱</div><div class="message-content">${processMarkdown(
+    returnMessage
+  )}</div></div>`;
+
   showNotification("✨ Back to chat!");
 }
 
@@ -1867,9 +1914,9 @@ async function viewSavedMedia() {
     showNotification("⚠️ Please sign in to view your saved media!");
     return;
   }
-  
+
   const chatArea = document.getElementById("chatArea");
-  
+
   // Show loading state immediately
   chatArea.innerHTML = `
     <div class="controls">
@@ -1880,31 +1927,30 @@ async function viewSavedMedia() {
       <p style="margin:20px 0;">Loading your media... ⏳</p>
     </div>
   `;
-  
+
   try {
     // Fetch only metadata first (without image_data for speed)
     const { data: images, error: imgError } = await window.supabaseClient
-      .from('generated_images')
-      .select('id, prompt, created_at, mime_type')
-      .eq('user_id', currentUser.id)
-      .order('created_at', { ascending: false })
+      .from("generated_images")
+      .select("id, prompt, created_at, mime_type")
+      .eq("user_id", currentUser.id)
+      .order("created_at", { ascending: false })
       .limit(20);
-    
+
     const { data: videos, error: vidError } = await window.supabaseClient
-      .from('generated_videos')
-      .select('id, prompt, created_at, mime_type')
-      .eq('user_id', currentUser.id)
-      .order('created_at', { ascending: false })
+      .from("generated_videos")
+      .select("id, prompt, created_at, mime_type")
+      .eq("user_id", currentUser.id)
+      .order("created_at", { ascending: false })
       .limit(10);
-    
+
     if (imgError) throw imgError;
     if (vidError) throw vidError;
-    
+
     // Display gallery immediately with placeholders
     displayMediaGalleryFast(images, videos);
-    
   } catch (error) {
-    console.error('Error fetching saved media:', error);
+    console.error("Error fetching saved media:", error);
     chatArea.innerHTML = `
       <div class="controls">
         <button class="control-btn" onclick="exitGalleryMode()">🔙 Back to Chat</button>
@@ -1920,47 +1966,69 @@ async function viewSavedMedia() {
 // Display media gallery with lazy loading
 function displayMediaGalleryFast(images, videos) {
   const chatArea = document.getElementById("chatArea");
-  
-  let imageGallery = '<h3>📸 Your Saved Images</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:15px;margin:20px 0;" id="imageGallery">';
-  
+
+  let imageGallery =
+    '<h3>📸 Your Saved Images</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:15px;margin:20px 0;" id="imageGallery">';
+
   if (images && images.length > 0) {
-    images.forEach(img => {
+    images.forEach((img) => {
       imageGallery += `
-        <div id="img-${img.id}" style="border:2px solid rgba(255,255,255,0.3);border-radius:10px;padding:10px;background:rgba(255,255,255,0.1);">
+        <div id="img-${
+          img.id
+        }" style="border:2px solid rgba(255,255,255,0.3);border-radius:10px;padding:10px;background:rgba(255,255,255,0.1);">
           <div style="width:100%;height:150px;background:rgba(255,255,255,0.1);border-radius:8px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.5);">
-            <span onclick="loadImage('${img.id}')" style="cursor:pointer;">👁️ Click to View</span>
+            <span onclick="loadImage('${
+              img.id
+            }')" style="cursor:pointer;">👁️ Click to View</span>
           </div>
-          <p style="font-size:0.8em;margin:5px 0;">${img.prompt.substring(0, 40)}...</p>
-          <small style="color:rgba(255,255,255,0.5);">${new Date(img.created_at).toLocaleDateString()}</small>
+          <p style="font-size:0.8em;margin:5px 0;">${img.prompt.substring(
+            0,
+            40
+          )}...</p>
+          <small style="color:rgba(255,255,255,0.5);">${new Date(
+            img.created_at
+          ).toLocaleDateString()}</small>
         </div>
       `;
     });
   } else {
-    imageGallery += '<p>No saved images yet. Generate some images to see them here! 🎨</p>';
+    imageGallery +=
+      "<p>No saved images yet. Generate some images to see them here! 🎨</p>";
   }
-  
-  imageGallery += '</div>';
-  
-  let videoGallery = '<h3>🎬 Your Saved Videos</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:15px;margin:20px 0;" id="videoGallery">';
-  
+
+  imageGallery += "</div>";
+
+  let videoGallery =
+    '<h3>🎬 Your Saved Videos</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:15px;margin:20px 0;" id="videoGallery">';
+
   if (videos && videos.length > 0) {
-    videos.forEach(vid => {
+    videos.forEach((vid) => {
       videoGallery += `
-        <div id="vid-${vid.id}" style="border:2px solid rgba(255,255,255,0.3);border-radius:10px;padding:10px;background:rgba(255,255,255,0.1);">
+        <div id="vid-${
+          vid.id
+        }" style="border:2px solid rgba(255,255,255,0.3);border-radius:10px;padding:10px;background:rgba(255,255,255,0.1);">
           <div style="width:100%;height:180px;background:rgba(255,255,255,0.1);border-radius:8px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.5);">
-            <span onclick="loadVideo('${vid.id}')" style="cursor:pointer;">👁️ Click to View</span>
+            <span onclick="loadVideo('${
+              vid.id
+            }')" style="cursor:pointer;">👁️ Click to View</span>
           </div>
-          <p style="font-size:0.8em;margin:5px 0;">${vid.prompt.substring(0, 40)}...</p>
-          <small style="color:rgba(255,255,255,0.5);">${new Date(vid.created_at).toLocaleDateString()}</small>
+          <p style="font-size:0.8em;margin:5px 0;">${vid.prompt.substring(
+            0,
+            40
+          )}...</p>
+          <small style="color:rgba(255,255,255,0.5);">${new Date(
+            vid.created_at
+          ).toLocaleDateString()}</small>
         </div>
       `;
     });
   } else {
-    videoGallery += '<p>No saved videos yet. Generate some videos to see them here! 🎬</p>';
+    videoGallery +=
+      "<p>No saved videos yet. Generate some videos to see them here! 🎬</p>";
   }
-  
-  videoGallery += '</div>';
-  
+
+  videoGallery += "</div>";
+
   chatArea.innerHTML = `
     <div class="controls">
       <button class="control-btn" onclick="exitGalleryMode()">🔙 Back to Chat</button>
@@ -1972,7 +2040,7 @@ function displayMediaGalleryFast(images, videos) {
       ${videoGallery}
     </div>
   `;
-  
+
   showNotification("📸 Gallery loaded! Click items to view them.");
 }
 
@@ -1980,30 +2048,34 @@ function displayMediaGalleryFast(images, videos) {
 async function loadImage(imageId) {
   const container = document.getElementById(`img-${imageId}`);
   if (!container) return;
-  
-  container.innerHTML = '<p style="text-align:center;padding:50px 0;">Loading... ⏳</p>';
-  
+
+  container.innerHTML =
+    '<p style="text-align:center;padding:50px 0;">Loading... ⏳</p>';
+
   try {
     const { data, error } = await window.supabaseClient
-      .from('generated_images')
-      .select('image_data, mime_type, prompt')
-      .eq('id', imageId)
+      .from("generated_images")
+      .select("image_data, mime_type, prompt")
+      .eq("id", imageId)
       .single();
-    
+
     if (error) throw error;
-    
+
     if (data && data.image_data) {
       const dataUrl = `data:${data.mime_type};base64,${data.image_data}`;
       container.innerHTML = `
         <img src="${dataUrl}" style="width:100%;height:150px;object-fit:cover;border-radius:8px;margin-bottom:8px;">
-        <p style="font-size:0.8em;margin:5px 0;">${data.prompt.substring(0, 40)}...</p>
+        <p style="font-size:0.8em;margin:5px 0;">${data.prompt.substring(
+          0,
+          40
+        )}...</p>
         <button onclick="downloadImage('${dataUrl}', 'image-${imageId}.png')" style="background:#4fc3f7;border:none;padding:5px 10px;border-radius:5px;color:white;cursor:pointer;font-size:0.8em;width:100%;">📥 Download</button>
       `;
     } else {
       container.innerHTML = '<p style="color:#ff6b6b;">Image not found</p>';
     }
   } catch (error) {
-    console.error('Error loading image:', error);
+    console.error("Error loading image:", error);
     container.innerHTML = '<p style="color:#ff6b6b;">Error loading image</p>';
   }
 }
@@ -2012,32 +2084,36 @@ async function loadImage(imageId) {
 async function loadVideo(videoId) {
   const container = document.getElementById(`vid-${videoId}`);
   if (!container) return;
-  
-  container.innerHTML = '<p style="text-align:center;padding:80px 0;">Loading video... ⏳</p>';
-  
+
+  container.innerHTML =
+    '<p style="text-align:center;padding:80px 0;">Loading video... ⏳</p>';
+
   try {
     const { data, error } = await window.supabaseClient
-      .from('generated_videos')
-      .select('video_data, mime_type, prompt')
-      .eq('id', videoId)
+      .from("generated_videos")
+      .select("video_data, mime_type, prompt")
+      .eq("id", videoId)
       .single();
-    
+
     if (error) throw error;
-    
+
     if (data && data.video_data) {
       const dataUrl = `data:${data.mime_type};base64,${data.video_data}`;
       container.innerHTML = `
         <video controls style="width:100%;border-radius:8px;margin-bottom:8px;">
           <source src="${dataUrl}" type="${data.mime_type}">
         </video>
-        <p style="font-size:0.8em;margin:5px 0;">${data.prompt.substring(0, 40)}...</p>
+        <p style="font-size:0.8em;margin:5px 0;">${data.prompt.substring(
+          0,
+          40
+        )}...</p>
         <button onclick="downloadVideo('${dataUrl}', 'video-${videoId}.mp4')" style="background:#4fc3f7;border:none;padding:5px 10px;border-radius:5px;color:white;cursor:pointer;font-size:0.8em;width:100%;">📥 Download</button>
       `;
     } else {
       container.innerHTML = '<p style="color:#ff6b6b;">Video not found</p>';
     }
   } catch (error) {
-    console.error('Error loading video:', error);
+    console.error("Error loading video:", error);
     container.innerHTML = '<p style="color:#ff6b6b;">Error loading video</p>';
   }
 }
@@ -2045,78 +2121,86 @@ async function loadVideo(videoId) {
 // Save chat messages to Supabase
 async function saveChatToDatabase(userMessage, assistantMessage) {
   if (!currentUser || !window.supabaseClient) return;
-  
+
   try {
     // Determine current mode
-    let currentMode = 'general';
-    if (socialStoriesMode) currentMode = 'social_stories';
-    else if (calmBreathingMode) currentMode = 'calm_breathing';
-    else if (feelingsHelperMode) currentMode = 'feelings_helper';
-    else if (memoryGameMode) currentMode = 'memory_game';
-    else if (colorsShapesMode) currentMode = 'colors_shapes';
-    
+    let currentMode = "general";
+    if (socialStoriesMode) currentMode = "social_stories";
+    else if (calmBreathingMode) currentMode = "calm_breathing";
+    else if (feelingsHelperMode) currentMode = "feelings_helper";
+    else if (memoryGameMode) currentMode = "memory_game";
+    else if (colorsShapesMode) currentMode = "colors_shapes";
+
     // Save both messages
-    const { error } = await window.supabaseClient.from('chat_history').insert([
+    const { error } = await window.supabaseClient.from("chat_history").insert([
       {
         user_id: currentUser.id,
-        role: 'user',
+        role: "user",
         message_text: userMessage,
-        mode: currentMode
+        mode: currentMode,
       },
       {
         user_id: currentUser.id,
-        role: 'assistant',
+        role: "assistant",
         message_text: assistantMessage,
-        mode: currentMode
-      }
+        mode: currentMode,
+      },
     ]);
-    
+
     if (error) throw error;
-    
-    console.log('✅ Chat saved to database');
+
+    console.log("✅ Chat saved to database");
   } catch (error) {
-    console.error('Error saving chat:', error);
+    console.error("Error saving chat:", error);
     // Don't show error to user - just log it
   }
 }
 
 // Save image generation to Supabase
-async function saveImageGenerationToDatabase(prompt, imageData = null, mimeType = null) {
+async function saveImageGenerationToDatabase(
+  prompt,
+  imageData = null,
+  mimeType = null
+) {
   if (!currentUser || !window.supabaseClient) return;
-  
+
   try {
-    let currentMode = 'general';
-    if (socialStoriesMode) currentMode = 'social_stories';
-    
-    await window.supabaseClient.from('generated_images').insert({
+    let currentMode = "general";
+    if (socialStoriesMode) currentMode = "social_stories";
+
+    await window.supabaseClient.from("generated_images").insert({
       user_id: currentUser.id,
       prompt: prompt,
       mode: currentMode,
       image_data: imageData, // Save the actual image
-      mime_type: mimeType
+      mime_type: mimeType,
     });
-    
-    console.log('✅ Image generation saved to database');
+
+    console.log("✅ Image generation saved to database");
   } catch (error) {
-    console.error('Error saving image generation:', error);
+    console.error("Error saving image generation:", error);
   }
 }
 
 // Save video generation to Supabase
-async function saveVideoGenerationToDatabase(prompt, videoData = null, mimeType = null) {
+async function saveVideoGenerationToDatabase(
+  prompt,
+  videoData = null,
+  mimeType = null
+) {
   if (!currentUser || !window.supabaseClient) return;
-  
+
   try {
-    await window.supabaseClient.from('generated_videos').insert({
+    await window.supabaseClient.from("generated_videos").insert({
       user_id: currentUser.id,
       prompt: prompt,
       video_data: videoData, // Save the actual video
-      mime_type: mimeType
+      mime_type: mimeType,
     });
-    
-    console.log('✅ Video generation saved to database');
+
+    console.log("✅ Video generation saved to database");
   } catch (error) {
-    console.error('Error saving video generation:', error);
+    console.error("Error saving video generation:", error);
   }
 }
 
@@ -2471,6 +2555,13 @@ function reactWithEmoji(emoji) {
 }
 
 function showNotification(message) {
+  const authModal = document.getElementById("authModal");
+
+  // ❌ Do NOT show notification if auth modal is visible
+  if (authModal && authModal.style.display !== "none") {
+    return;
+  }
+
   const notification = document.createElement("div");
   notification.textContent = message;
   notification.style.cssText = `
@@ -2613,11 +2704,11 @@ function enterSocialStoriesMode() {
 
 function showSocialStory(storyType) {
   const storyMap = {
-    hospital: "how-to-go-to-hospital.png",
-    salon: "how-to-go-to-salon.png",
-    dentist: "how-to-visit-dentist.png",
-    party: "how-to-go-to-party.png",
-    friends: "how-to-meet-new-friends.png",
+    hospital: "how-to-go-to-hospital.jpg",
+    salon: "how-to-go-to-salon.jpg",
+    dentist: "how-to-visit-dentist.jpg",
+    party: "how-to-go-to-party.jpg",
+    friends: "how-to-meet-new-friends.jpg",
   };
 
   const storyTitles = {
@@ -3020,7 +3111,10 @@ async function selectFeeling(feelingType) {
       );
       // Save to database
       if (currentUser && window.supabaseClient) {
-        saveChatToDatabase(`I'm feeling ${feeling.name.toLowerCase()}`, data.response);
+        saveChatToDatabase(
+          `I'm feeling ${feeling.name.toLowerCase()}`,
+          data.response
+        );
       }
     } else {
       lastMessageId++;
@@ -3318,7 +3412,7 @@ function gameComplete() {
             <button class="game-complete-btn" onclick="exitMemoryGameMode()">Exit 🚪</button>
         </div>
     `;
-    // Save game completion to database
+  // Save game completion to database
   if (currentUser && window.supabaseClient) {
     saveMemoryGameToDatabase(6, memoryGameMoves, true);
   }
@@ -3327,18 +3421,22 @@ function gameComplete() {
 // Save Memory Game session to Supabase
 async function saveMemoryGameToDatabase(level, moves, completed) {
   if (!currentUser || !window.supabaseClient) return;
-  
+
   try {
-    await window.supabaseClient.from('memory_game_sessions').insert({
+    await window.supabaseClient.from("memory_game_sessions").insert({
       user_id: currentUser.id,
       level_reached: level,
       moves_used: moves,
-      completed: completed
+      completed: completed,
     });
-    
-    console.log(`✅ Memory game ${completed ? 'completion' : 'progress'} saved to database`);
+
+    console.log(
+      `✅ Memory game ${
+        completed ? "completion" : "progress"
+      } saved to database`
+    );
   } catch (error) {
-    console.error('Error saving memory game:', error);
+    console.error("Error saving memory game:", error);
   }
 }
 
@@ -3414,7 +3512,7 @@ document.addEventListener("DOMContentLoaded", function () {
   checkExistingSession();
 
   // Welcome message after a delay
-// Welcome message after a delay
+  // Welcome message after a delay
   setTimeout(() => {
     lastMessageId++;
     const userName = currentUserName || "friend";
@@ -3428,7 +3526,7 @@ and **I can even generate cute pictures and videos for you!** 🖼️🎬✨\n\n
 - "What is the sun?" → I'll explain it 💬`;
     addMessage("assistant", welcomeMessage, "🐭", lastMessageId);
   }, 1000);
-  });
+});
 
 async function checkConnection() {
   try {

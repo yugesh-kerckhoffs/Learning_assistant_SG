@@ -38,7 +38,8 @@ body {
 }
 
 @keyframes bannerPulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
   }
   50% {
@@ -61,7 +62,8 @@ body {
 }
 
 @keyframes iconBounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -76,14 +78,14 @@ body {
 }
 
 .banner-text a {
-  color: #FFD700;
+  color: #ffd700;
   text-decoration: underline;
   font-weight: bold;
   transition: color 0.3s ease;
 }
 
 .banner-text a:hover {
-  color: #FFF;
+  color: #fff;
 }
 
 .banner-close {
@@ -536,22 +538,55 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(171, 71, 188, 0.4);
 }
+.control-btn-1 {
+  background: linear-gradient(135deg, #186e9f, #0ebfeb);
+  border: none;
+  border-radius: 18px;
+  padding: 8px 16px;
+  color: white;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  font-family: inherit;
+}
+.control-btn-1:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(171, 71, 188, 0.4);
+}
 .control-btn-2 {
-    background: linear-gradient(135deg, #ff2600, #ff003c);
-    border: none;
-    border-radius: 18px;
-    padding: 8px 16px;
-    color: white;
-    font-size: 0.9em;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    font-family: inherit;
+  background: linear-gradient(135deg, #ff2600, #ff003c);
+  border: none;
+  border-radius: 18px;
+  padding: 8px 16px;
+  color: white;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  font-family: inherit;
 }
 
 .control-btn-2:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4);
+}
+.control-btn-3 {
+  background: linear-gradient(135deg, #ff00ea, #ff00c8);
+  border: none;
+  border-radius: 18px;
+  padding: 8px 16px;
+  color: white;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  font-family: inherit;
+}
+
+.control-btn-3:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4);
 }
 .exit-btn {
   background: linear-gradient(135deg, #ff6b6b, #ee5a24) !important;

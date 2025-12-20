@@ -16,49 +16,57 @@
       <div class="banner-content">
         <span class="banner-icon">💡</span>
         <span class="banner-text" id="bannerText"></span>
-        <button class="banner-close" onclick="closeBanner()" aria-label="Close banner">x</button>
+        <button
+          class="banner-close"
+          onclick="closeBanner()"
+          aria-label="Close banner"
+        >
+          x
+        </button>
       </div>
     </div>
 
     <!-- Authentication Modal -->
     <!-- Authentication Modal -->
-    <div id="authModal" class="auth-modal" style="display: none;">
+    <div id="authModal" class="auth-modal" style="display: none">
       <div class="auth-content">
-        <img src="logo.png" alt="App Logo" class="logo">
+        <img src="logo.png" alt="App Logo" class="logo" />
         <h2>🌟 Welcome! 🌟</h2>
         <p>Please choose how you'd like to proceed:</p>
 
-<div class="auth-buttons" id="authMainButtons">
-  <button class="auth-btn guest-btn" onclick="loginAsGuest()">
-    👤 Continue as Guest
-  </button>
-  <button class="auth-btn signin-btn" onclick="showSignIn()">
-    🔐 Sign In
-  </button>
-  <button class="auth-btn signup-btn" onclick="showSignUp()">
-    ✨ Sign Up
-  </button>
-  <button class="auth-btn admin-btn" onclick="showAdminLogin()">
-    🔑 Admin Login
-  </button>
-</div>
+        <div class="auth-buttons" id="authMainButtons">
+          <button class="auth-btn guest-btn" onclick="loginAsGuest()">
+            👤 Continue as Guest
+          </button>
+          <button class="auth-btn signin-btn" onclick="showSignIn()">
+            🔐 Sign In
+          </button>
+          <button class="auth-btn signup-btn" onclick="showSignUp()">
+            ✨ Sign Up
+          </button>
+          <button class="auth-btn admin-btn" onclick="showAdminLogin()">
+            🔑 Admin Login
+          </button>
+        </div>
 
-<div id="adminLoginForm" style="display: none">
-  <div class="password-input-wrapper">
-    <input
-      type="password"
-      id="secretKeyInput"
-      class="secret-key-input"
-      placeholder="Enter Admin Secret Key 🔑"
-      onkeypress="handleAdminKeyPress(event)"
-    />
-    <button 
-      type="button" 
-      class="password-toggle-btn" 
-      onclick="togglePasswordVisibility('secretKeyInput', this)"
-      tabindex="-1"
-    >👁️‍🗨️</button>
-  </div>
+        <div id="adminLoginForm" style="display: none">
+          <div class="password-input-wrapper">
+            <input
+              type="password"
+              id="secretKeyInput"
+              class="secret-key-input"
+              placeholder="Enter Admin Secret Key 🔑"
+              onkeypress="handleAdminKeyPress(event)"
+            />
+            <button
+              type="button"
+              class="password-toggle-btn"
+              onclick="togglePasswordVisibility('secretKeyInput', this)"
+              tabindex="-1"
+            >
+              👁️‍🗨️
+            </button>
+          </div>
           <button class="auth-btn verify-btn" onclick="verifyAdminKey()">
             ✓ Verify
           </button>
@@ -68,168 +76,209 @@
           <p id="authError" class="auth-error"></p>
         </div>
         <!-- Sign In Form -->
-<div id="signInForm" style="display: none">
-  <input
-    type="email"
-    id="signInEmail"
-    class="secret-key-input"
-    placeholder="Enter your email 📧"
-    style="margin-top: 0;"
-  />
-  <div class="password-input-wrapper">
-    <input
-      type="password"
-      id="signInPassword"
-      class="secret-key-input"
-      placeholder="Enter your password 🔒"
-    />
-    <button 
-      type="button" 
-      class="password-toggle-btn" 
-      onclick="togglePasswordVisibility('signInPassword', this)"
-      tabindex="-1"
-    >👁️‍🗨️</button>
-  </div>
-  <p style="text-align: center; margin: 10px 0;">
-    <a href="#" onclick="showForgotPassword(); return false;" style="color: #4fc3f7; text-decoration: none; font-size: 0.9em;">Forgot Password? 🔑</a>
-  </p>
-  <button class="auth-btn verify-btn" onclick="handleSignIn()">
-    ✓ Sign In
-  </button>
-  <button class="auth-btn back-btn" onclick="hideSignIn()">
-    ← Back
-  </button>
-  <p id="signInError" class="auth-error"></p>
-</div>
-<!-- Forgot Password Form -->
-<div id="forgotPasswordForm" style="display: none">
-  <h3 style="text-align: center; color: #4fc3f7; margin-bottom: 15px;">Reset Password</h3>
-  <p style="text-align: center; color: rgba(255,255,255,0.8); font-size: 0.9em; margin-bottom: 20px;">
-    Enter your email and we'll send you a password reset link
-  </p>
-  <input
-    type="email"
-    id="forgotPasswordEmail"
-    class="secret-key-input"
-    placeholder="Enter your email 📧"
-    style="margin-top: 0;"
-  />
-  <button class="auth-btn verify-btn" onclick="handleForgotPassword()">
-    📧 Send Reset Link
-  </button>
-  <button class="auth-btn back-btn" onclick="hideForgotPassword()">
-    ← Back
-  </button>
-  <p id="forgotPasswordError" class="auth-error"></p>
-  <p id="forgotPasswordSuccess" style="color: #66bb6a; text-align: center; margin-top: 10px; font-size: 0.9em;"></p>
-</div>
+        <div id="signInForm" style="display: none">
+          <input
+            type="email"
+            id="signInEmail"
+            class="secret-key-input"
+            placeholder="Enter your email 📧"
+            style="margin-top: 0"
+          />
+          <div class="password-input-wrapper">
+            <input
+              type="password"
+              id="signInPassword"
+              class="secret-key-input"
+              placeholder="Enter your password 🔒"
+            />
+            <button
+              type="button"
+              class="password-toggle-btn"
+              onclick="togglePasswordVisibility('signInPassword', this)"
+              tabindex="-1"
+            >
+              👁️‍🗨️
+            </button>
+          </div>
+          <p style="text-align: center; margin: 10px 0">
+            <a
+              href="#"
+              onclick="showForgotPassword(); return false;"
+              style="color: #4fc3f7; text-decoration: none; font-size: 0.9em"
+              >Forgot Password? 🔑</a
+            >
+          </p>
+          <button class="auth-btn verify-btn" onclick="handleSignIn()">
+            ✓ Sign In
+          </button>
+          <button class="auth-btn back-btn" onclick="hideSignIn()">
+            ← Back
+          </button>
+          <p id="signInError" class="auth-error"></p>
+        </div>
+        <!-- Forgot Password Form -->
+        <div id="forgotPasswordForm" style="display: none">
+          <h3 style="text-align: center; color: #4fc3f7; margin-bottom: 15px">
+            Reset Password
+          </h3>
+          <p
+            style="
+              text-align: center;
+              color: rgba(255, 255, 255, 0.8);
+              font-size: 0.9em;
+              margin-bottom: 20px;
+            "
+          >
+            Enter your email and we'll send you a password reset link
+          </p>
+          <input
+            type="email"
+            id="forgotPasswordEmail"
+            class="secret-key-input"
+            placeholder="Enter your email 📧"
+            style="margin-top: 0"
+          />
+          <button class="auth-btn verify-btn" onclick="handleForgotPassword()">
+            📧 Send Reset Link
+          </button>
+          <button class="auth-btn back-btn" onclick="hideForgotPassword()">
+            ← Back
+          </button>
+          <p id="forgotPasswordError" class="auth-error"></p>
+          <p
+            id="forgotPasswordSuccess"
+            style="
+              color: #66bb6a;
+              text-align: center;
+              margin-top: 10px;
+              font-size: 0.9em;
+            "
+          ></p>
+        </div>
 
-<!-- Sign Up Form -->
-<div id="signUpForm" style="display: none">
-  <input
-    type="text"
-    id="signUpName"
-    class="secret-key-input"
-    placeholder="Enter your name 😊"
-    style="margin-top: 0;"
-  />
-  <input
-    type="email"
-    id="signUpEmail"
-    class="secret-key-input"
-    placeholder="Enter your email 📧"
-  />
-  <div class="password-input-wrapper">
-    <input
-      type="password"
-      id="signUpPassword"
-      class="secret-key-input"
-      placeholder="Create a password 🔒"
-    />
-    <button 
-      type="button" 
-      class="password-toggle-btn" 
-      onclick="togglePasswordVisibility('signUpPassword', this)"
-      tabindex="-1"
-    >👁️‍🗨️</button>
-  </div>
-  <div class="password-input-wrapper">
-    <input
-      type="password"
-      id="signUpConfirmPassword"
-      class="secret-key-input"
-      placeholder="Confirm password 🔒"
-    />
-    <button 
-      type="button" 
-      class="password-toggle-btn" 
-      onclick="togglePasswordVisibility('signUpConfirmPassword', this)"
-      tabindex="-1"
-    >👁️‍🗨️</button>
-  </div>
-  <button class="auth-btn verify-btn" onclick="handleSignUp()">
-    ✓ Sign Up
-  </button>
-  <button class="auth-btn back-btn" onclick="hideSignUp()">
-    ← Back
-  </button>
-  <p id="signUpError" class="auth-error"></p>
-</div>
+        <!-- Sign Up Form -->
+        <div id="signUpForm" style="display: none">
+          <input
+            type="text"
+            id="signUpName"
+            class="secret-key-input"
+            placeholder="Enter your name 😊"
+            style="margin-top: 0"
+          />
+          <input
+            type="email"
+            id="signUpEmail"
+            class="secret-key-input"
+            placeholder="Enter your email 📧"
+          />
+          <div class="password-input-wrapper">
+            <input
+              type="password"
+              id="signUpPassword"
+              class="secret-key-input"
+              placeholder="Create a password 🔒"
+            />
+            <button
+              type="button"
+              class="password-toggle-btn"
+              onclick="togglePasswordVisibility('signUpPassword', this)"
+              tabindex="-1"
+            >
+              👁️‍🗨️
+            </button>
+          </div>
+          <div class="password-input-wrapper">
+            <input
+              type="password"
+              id="signUpConfirmPassword"
+              class="secret-key-input"
+              placeholder="Confirm password 🔒"
+            />
+            <button
+              type="button"
+              class="password-toggle-btn"
+              onclick="togglePasswordVisibility('signUpConfirmPassword', this)"
+              tabindex="-1"
+            >
+              👁️‍🗨️
+            </button>
+          </div>
+          <button class="auth-btn verify-btn" onclick="handleSignUp()">
+            ✓ Sign Up
+          </button>
+          <button class="auth-btn back-btn" onclick="hideSignUp()">
+            ← Back
+          </button>
+          <p id="signUpError" class="auth-error"></p>
+        </div>
 
-<p class="auth-note">
-  <strong>Guest Access:</strong> Try the app without an account<br />
-  <strong>Sign In/Up:</strong> Save your progress and chat history 💾<br />
-  <strong>Admin Access:</strong> All features including video generation 🎬
-</p>
+        <p class="auth-note">
+          <strong>Guest Access:</strong> Try the app without an account<br />
+          <strong>Sign In/Up:</strong> Save your progress and chat history 💾<br />
+          <strong>Admin Access:</strong> All features including video generation
+          🎬
+        </p>
       </div>
     </div>
-    
-    <!-- Password Reset Modal -->
-<div id="resetPasswordModal" class="auth-modal" style="display: none;">
-  <div class="auth-content">
-    <img src="logo.png" alt="App Logo" class="logo">
-    <h2>🔐 Reset Password</h2>
-    <p>Enter your new password below</p>
 
-    <div class="password-input-wrapper">
-      <input
-        type="password"
-        id="resetNewPassword"
-        class="secret-key-input"
-        placeholder="New Password 🔒"
-        style="margin-top: 0;"
-      />
-      <button 
-        type="button" 
-        class="password-toggle-btn" 
-        onclick="togglePasswordVisibility('resetNewPassword', this)"
-        tabindex="-1"
-      >👁️‍🗨️</button>
-    </div>
-    <div class="password-input-wrapper">
-      <input
-        type="password"
-        id="resetConfirmPassword"
-        class="secret-key-input"
-        placeholder="Confirm Password 🔒"
-      />
-      <button 
-        type="button" 
-        class="password-toggle-btn" 
-        onclick="togglePasswordVisibility('resetConfirmPassword', this)"
-        tabindex="-1"
-      >👁️‍🗨️</button>
-    </div>
+    <!-- Password Reset Modal -->
+    <div id="resetPasswordModal" class="auth-modal" style="display: none">
+      <div class="auth-content">
+        <img src="logo.png" alt="App Logo" class="logo" />
+        <h2>🔐 Reset Password</h2>
+        <p>Enter your new password below</p>
+
+        <div class="password-input-wrapper">
+          <input
+            type="password"
+            id="resetNewPassword"
+            class="secret-key-input"
+            placeholder="New Password 🔒"
+            style="margin-top: 0"
+          />
+          <button
+            type="button"
+            class="password-toggle-btn"
+            onclick="togglePasswordVisibility('resetNewPassword', this)"
+            tabindex="-1"
+          >
+            👁️‍🗨️
+          </button>
+        </div>
+        <div class="password-input-wrapper">
+          <input
+            type="password"
+            id="resetConfirmPassword"
+            class="secret-key-input"
+            placeholder="Confirm Password 🔒"
+          />
+          <button
+            type="button"
+            class="password-toggle-btn"
+            onclick="togglePasswordVisibility('resetConfirmPassword', this)"
+            tabindex="-1"
+          >
+            👁️‍🗨️
+          </button>
+        </div>
         <button class="auth-btn verify-btn" onclick="handlePasswordReset()">
           ✓ Reset Password
         </button>
         <p id="resetPasswordError" class="auth-error"></p>
-        <p id="resetPasswordSuccess" style="color: #66bb6a; text-align: center; margin-top: 10px; font-size: 0.9em;"></p>
+        <p
+          id="resetPasswordSuccess"
+          style="
+            color: #66bb6a;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9em;
+          "
+        ></p>
       </div>
     </div>
     <div class="container">
       <div class="header">
-        <img src="logo.png" alt="App Logo" class="logo">
+        <img src="logo.png" alt="App Logo" class="logo" />
         <h1 class="title">🌟 Your Learning Assistant 🌟</h1>
         <p class="subtitle">Friendly Chat with Tom & Jerry!</p>
         <div class="character-container">
@@ -259,22 +308,10 @@
       </div>
 
       <div class="settings-panel">
-        <div class="setting-item">
-          <span>🔊</span>
-          <input
-            type="range"
-            class="volume-slider"
-            min="0"
-            max="100"
-            value="50"
-            id="volume"
-            oninput="updateVolume()"
-          />
-        </div>
-        <div class="setting-item">
-          <span>🎨</span>
-          <button class="control-btn" onclick="changeTheme()">Theme</button>
-        </div>
+        <button class="control-btn-1" onclick="changeTheme()">🎨 Theme</button>
+        <a href="https://" target="_blank">
+          <button class="control-btn-3">💛 Donate</button>
+        </a>
         <button class="control-btn-2" onclick="logout()" id="logoutButton">
           🚪 Logout
         </button>
@@ -284,10 +321,14 @@
         <div class="sidebar">
           <h3>📚 Learning Activities</h3>
           <div class="visual-schedule">
-            <div class="activity-card-main" onclick="viewSavedMedia()" tabindex="0">
-  <h4>🖼️ My Gallery</h4>
-  <p>View saved images & videos</p>
-</div>
+            <div
+              class="activity-card-main"
+              onclick="viewSavedMedia()"
+              tabindex="0"
+            >
+              <h4>🖼️ My Gallery</h4>
+              <p>View saved images & videos</p>
+            </div>
             <div
               class="activity-card"
               onclick="enterGeneralMode()"
@@ -342,6 +383,10 @@
         <div class="chat-area" id="chatArea">
           <div class="controls" id="controlsArea">
             <button class="control-btn" onclick="clearChat()">🗑️ Clear</button>
+            <button class="control-btn" onclick="showHelp()">❓ Help</button>
+            <button class="control-btn" onclick="celebrateProgress()">
+              🎉 Celebrate
+            </button>
             <button
               class="control-btn"
               onclick="toggleVoice()"
@@ -349,10 +394,18 @@
             >
               🔊 Voice
             </button>
-            <button class="control-btn" onclick="showHelp()">❓ Help</button>
-            <button class="control-btn" onclick="celebrateProgress()">
-              🎉 Celebrate
-            </button>
+            <div class="setting-item">
+              <span>🔊</span>
+              <input
+                type="range"
+                class="volume-slider"
+                min="0"
+                max="100"
+                value="50"
+                id="volume"
+                oninput="updateVolume()"
+              />
+            </div>
           </div>
           <div class="messages" id="messages"></div>
           <div class="input-area" id="inputArea">
