@@ -1250,6 +1250,159 @@ app.get("/api/supabase-config", (req, res) => {
   });
 });
 
+// ========================================
+// ADMIN VERIFICATION ENDPOINT
+// ========================================
+app.post("/api/verify-admin", async (req, res) => {
+  try {
+    const { secretKey } = req.body;
+    
+    if (!secretKey) {
+      return res.status(400).json({ error: "Secret key is required" });
+    }
+    
+    // Check if the secret key matches the admin key from environment
+    const adminKey = process.env.ADMIN_SECRET_KEY || "your-default-admin-key-here";
+    
+    if (secretKey === adminKey) {
+      return res.json({ 
+        isAdmin: true, 
+        message: "Admin verified successfully" 
+      });
+    } else {
+      return res.json({ 
+        isAdmin: false, 
+        message: "Invalid admin key" 
+      });
+    }
+  } catch (error) {
+    console.error("❌ Admin verification error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ========================================
+// CONTACT FORM API ENDPOINT
+// ========================================
+app.post("/api/contact", async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
+
+    // Validate inputs
+    if (!name || !email || !message) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: "Invalid email address" });
+    }
+
+    // Send email using Resend
+    const { data, error } = await resend.emails.send({
+      from: "Learning Assistant <onboarding@resend.dev>", // Resend's test email
+      to: ["imyugesh.s@gmail.com"], // Your email
+      subject: `New Contact Form Message from ${name}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              line-height: 1.6;
+              color: #333;
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+            }
+            .header {
+              background: linear-gradient(135deg, #4fc3f7, #66bb6a);
+              color: white;
+              padding: 30px;
+              border-radius: 10px 10px 0 0;
+              text-align: center;
+            }
+            .content {
+              background: #f9f9f9;
+              padding: 30px;
+              border-radius: 0 0 10px 10px;
+            }
+            .info-row {
+              margin: 15px 0;
+              padding: 15px;
+              background: white;
+              border-radius: 8px;
+              border-left: 4px solid #4fc3f7;
+            }
+            .label {
+              font-weight: bold;
+              color: #4fc3f7;
+              display: block;
+              margin-bottom: 5px;
+            }
+            .value {
+              color: #333;
+            }
+            .message-box {
+              background: white;
+              padding: 20px;
+              border-radius: 8px;
+              margin-top: 20px;
+              border: 1px solid #e0e0e0;
+            }
+            .footer {
+              text-align: center;
+              margin-top: 30px;
+              color: #666;
+              font-size: 0.9em;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>📧 New Contact Form Submission</h1>
+          </div>
+          <div class="content">
+            <div class="info-row">
+              <span class="label">👤 Name:</span>
+              <span class="value">${name}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">📧 Email:</span>
+              <span class="value">${email}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">📅 Date:</span>
+              <span class="value">${new Date().toLocaleString()}</span>
+            </div>
+            <div class="message-box">
+              <span class="label">💬 Message:</span>
+              <p class="value">${message.replace(/\n/g, '<br>')}</p>
+            </div>
+            <div class="footer">
+              <p>This email was sent from the Learning Assistant contact form.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    });
+
+    if (error) {
+      console.error("❌ Resend error:", error);
+      return res.status(500).json({ error: "Failed to send email" });
+    }
+
+    console.log("✅ Contact email sent successfully:", data);
+    res.json({ success: true, message: "Email sent successfully" });
+  } catch (error) {
+    console.error("❌ Contact form error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({

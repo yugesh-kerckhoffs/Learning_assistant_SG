@@ -26,217 +26,316 @@
       </div>
     </div>
 
-    <!-- Authentication Modal -->
-    <!-- Authentication Modal -->
-    <div id="authModal" class="auth-modal" style="display: none">
-      <div class="auth-content">
-        <img src="logo.png" alt="App Logo" class="logo" />
-        <h2>🌟 Welcome! 🌟</h2>
-        <p>Please choose how you'd like to proceed:</p>
-
-        <div class="auth-buttons" id="authMainButtons">
-          <button class="auth-btn guest-btn" onclick="loginAsGuest()">
-            👤 Continue as Guest
-          </button>
-          <button class="auth-btn signin-btn" onclick="showSignIn()">
-            🔐 Sign In
-          </button>
-          <button class="auth-btn signup-btn" onclick="showSignUp()">
-            ✨ Sign Up
-          </button>
-          <button class="auth-btn admin-btn" onclick="showAdminLogin()">
-            🔑 Admin Login
-          </button>
+<!-- Sign In Page (Full Screen) -->
+    <div id="signInPage" class="auth-page" style="display: none;">
+      <div class="auth-page-container">
+        <div class="auth-page-left">
+          <div class="auth-page-branding">
+            <img src="logo.png" alt="Logo" class="auth-page-logo" />
+            <h1 class="auth-page-brand-title">Learning Assistant</h1>
+            <p class="auth-page-brand-subtitle">Your friendly learning companion</p>
+          </div>
+          <div class="auth-page-illustration">
+            <div class="auth-illustration-character tom">🐱</div>
+            <div class="auth-illustration-character jerry">🐭</div>
+          </div>
         </div>
-
-        <div id="adminLoginForm" style="display: none">
-          <div class="password-input-wrapper">
-            <input
-              type="password"
-              id="secretKeyInput"
-              class="secret-key-input"
-              placeholder="Enter Admin Secret Key 🔑"
-              onkeypress="handleAdminKeyPress(event)"
-            />
-            <button
-              type="button"
-              class="password-toggle-btn"
-              onclick="togglePasswordVisibility('secretKeyInput', this)"
-              tabindex="-1"
-            >
-              👁️‍🗨️
+        
+        <div class="auth-page-right">
+          <button class="auth-back-btn" onclick="backToLanding()">← Back to Home</button>
+          
+          <div class="auth-form-container">
+            <h2 class="auth-form-title">🔐 Welcome Back!</h2>
+            <p class="auth-form-subtitle">Sign in to continue your learning journey</p>
+            
+            <form id="signInFormNew" class="auth-form" onsubmit="handleSignInNew(event)">
+              <div class="form-group-auth">
+                <label class="form-label-auth">Email Address</label>
+                <input 
+                  type="email" 
+                  id="signInEmailNew" 
+                  class="form-input-auth" 
+                  placeholder="your@email.com"
+                  required
+                />
+              </div>
+              
+              <div class="form-group-auth">
+                <label class="form-label-auth">Password</label>
+                <div class="password-input-container">
+                  <input 
+                    type="password" 
+                    id="signInPasswordNew" 
+                    class="form-input-auth" 
+                    placeholder="Enter your password"
+                    required
+                  />
+                  <button 
+                    type="button" 
+                    class="password-toggle" 
+                    onclick="togglePasswordNew('signInPasswordNew', this)"
+                  >
+                    👁️
+                  </button>
+                </div>
+              </div>
+              
+              <div class="form-actions-row">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="rememberMe" />
+                  <span>Remember me</span>
+                </label>
+                <a href="#" onclick="showForgotPasswordPage(); return false;" class="forgot-link">
+                  Forgot password?
+                </a>
+              </div>
+              
+              <button type="submit" class="auth-submit-btn" id="signInSubmitBtn">
+                <span id="signInBtnText">Sign In</span>
+                <span id="signInBtnLoading" style="display: none;">Signing in...</span>
+              </button>
+              
+              <p class="auth-error-message" id="signInErrorNew"></p>
+            </form>
+            
+            <div class="auth-divider">
+              <span>Don't have an account?</span>
+            </div>
+            
+            <button class="auth-secondary-btn" onclick="showSignUpPage()">
+              Create New Account
             </button>
           </div>
-          <button class="auth-btn verify-btn" onclick="verifyAdminKey()">
-            ✓ Verify
-          </button>
-          <button class="auth-btn back-btn" onclick="hideAdminLogin()">
-            ← Back
-          </button>
-          <p id="authError" class="auth-error"></p>
         </div>
-        <!-- Sign In Form -->
-        <div id="signInForm" style="display: none">
-          <input
-            type="email"
-            id="signInEmail"
-            class="secret-key-input"
-            placeholder="Enter your email 📧"
-            style="margin-top: 0"
-          />
-          <div class="password-input-wrapper">
-            <input
-              type="password"
-              id="signInPassword"
-              class="secret-key-input"
-              placeholder="Enter your password 🔒"
-            />
-            <button
-              type="button"
-              class="password-toggle-btn"
-              onclick="togglePasswordVisibility('signInPassword', this)"
-              tabindex="-1"
-            >
-              👁️‍🗨️
+      </div>
+    </div>
+
+    <!-- Sign Up Page (Full Screen) -->
+    <div id="signUpPage" class="auth-page" style="display: none;">
+      <div class="auth-page-container">
+        <div class="auth-page-left">
+          <div class="auth-page-branding">
+            <img src="logo.png" alt="Logo" class="auth-page-logo" />
+            <h1 class="auth-page-brand-title">Learning Assistant</h1>
+            <p class="auth-page-brand-subtitle">Start your learning adventure today!</p>
+          </div>
+          <div class="auth-page-illustration">
+            <div class="auth-illustration-character tom">🐱</div>
+            <div class="auth-illustration-character jerry">🐭</div>
+          </div>
+        </div>
+        
+        <div class="auth-page-right">
+          <button class="auth-back-btn" onclick="backToLanding()">← Back to Home</button>
+          
+          <div class="auth-form-container">
+            <h2 class="auth-form-title">✨ Create Account</h2>
+            <p class="auth-form-subtitle">Join thousands of happy learners!</p>
+            
+            <form id="signUpFormNew" class="auth-form" onsubmit="handleSignUpNew(event)">
+              <div class="form-group-auth">
+                <label class="form-label-auth">Full Name</label>
+                <input 
+                  type="text" 
+                  id="signUpNameNew" 
+                  class="form-input-auth" 
+                  placeholder="Enter your name"
+                  required
+                />
+              </div>
+              
+              <div class="form-group-auth">
+                <label class="form-label-auth">Email Address</label>
+                <input 
+                  type="email" 
+                  id="signUpEmailNew" 
+                  class="form-input-auth" 
+                  placeholder="your@email.com"
+                  required
+                />
+              </div>
+              
+              <div class="form-group-auth">
+                <label class="form-label-auth">Password</label>
+                <div class="password-input-container">
+                  <input 
+                    type="password" 
+                    id="signUpPasswordNew" 
+                    class="form-input-auth" 
+                    placeholder="Create a strong password"
+                    required
+                  />
+                  <button 
+                    type="button" 
+                    class="password-toggle" 
+                    onclick="togglePasswordNew('signUpPasswordNew', this)"
+                  >
+                    👁️
+                  </button>
+                </div>
+                <small class="input-hint">Must be at least 6 characters</small>
+              </div>
+              
+              <div class="form-group-auth">
+                <label class="form-label-auth">Confirm Password</label>
+                <div class="password-input-container">
+                  <input 
+                    type="password" 
+                    id="signUpConfirmPasswordNew" 
+                    class="form-input-auth" 
+                    placeholder="Confirm your password"
+                    required
+                  />
+                  <button 
+                    type="button" 
+                    class="password-toggle" 
+                    onclick="togglePasswordNew('signUpConfirmPasswordNew', this)"
+                  >
+                    👁️
+                  </button>
+                </div>
+              </div>
+              
+              <div class="form-group-auth">
+                <label class="form-label-auth">School (Optional)</label>
+                <select 
+                  id="signUpSchoolNew" 
+                  class="form-input-auth"
+                  onchange="loadTeachersForSchoolNew(this.value)"
+                >
+                  <option value="">🏫 Select your school</option>
+                </select>
+              </div>
+              
+              <div class="form-group-auth" id="teacherGroupNew" style="display: none;">
+                <label class="form-label-auth">Teacher (Optional)</label>
+                <select id="signUpTeacherNew" class="form-input-auth">
+                  <option value="">👨‍🏫 Select your teacher</option>
+                </select>
+              </div>
+              
+              <button type="submit" class="auth-submit-btn" id="signUpSubmitBtn">
+                <span id="signUpBtnText">Create Account</span>
+                <span id="signUpBtnLoading" style="display: none;">Creating account...</span>
+              </button>
+              
+              <p class="auth-error-message" id="signUpErrorNew"></p>
+            </form>
+            
+            <div class="auth-divider">
+              <span>Already have an account?</span>
+            </div>
+            
+            <button class="auth-secondary-btn" onclick="showSignInPage()">
+              Sign In Instead
             </button>
           </div>
-          <p style="text-align: center; margin: 10px 0">
-            <a
-              href="#"
-              onclick="showForgotPassword(); return false;"
-              style="color: #4fc3f7; text-decoration: none; font-size: 0.9em"
-              >Forgot Password? 🔑</a
-            >
-          </p>
-          <button class="auth-btn verify-btn" onclick="handleSignIn()">
-            ✓ Sign In
-          </button>
-          <button class="auth-btn back-btn" onclick="hideSignIn()">
-            ← Back
-          </button>
-          <p id="signInError" class="auth-error"></p>
         </div>
-        <!-- Forgot Password Form -->
-        <div id="forgotPasswordForm" style="display: none">
-          <h3 style="text-align: center; color: #4fc3f7; margin-bottom: 15px">
-            Reset Password
-          </h3>
-          <p
-            style="
-              text-align: center;
-              color: rgba(255, 255, 255, 0.8);
-              font-size: 0.9em;
-              margin-bottom: 20px;
-            "
-          >
-            Enter your email and we'll send you a password reset link
-          </p>
-          <input
-            type="email"
-            id="forgotPasswordEmail"
-            class="secret-key-input"
-            placeholder="Enter your email 📧"
-            style="margin-top: 0"
-          />
-          <button class="auth-btn verify-btn" onclick="handleForgotPassword()">
-            📧 Send Reset Link
-          </button>
-          <button class="auth-btn back-btn" onclick="hideForgotPassword()">
-            ← Back
-          </button>
-          <p id="forgotPasswordError" class="auth-error"></p>
-          <p
-            id="forgotPasswordSuccess"
-            style="
-              color: #66bb6a;
-              text-align: center;
-              margin-top: 10px;
-              font-size: 0.9em;
-            "
-          ></p>
-        </div>
+      </div>
+    </div>
 
-        <!-- Sign Up Form -->
-        <div id="signUpForm" style="display: none">
-          <input
-            type="text"
-            id="signUpName"
-            class="secret-key-input"
-            placeholder="Enter your name 😊"
-            style="margin-top: 0"
-          />
-          <input
-            type="email"
-            id="signUpEmail"
-            class="secret-key-input"
-            placeholder="Enter your email 📧"
-          />
-          <div class="password-input-wrapper">
-            <input
-              type="password"
-              id="signUpPassword"
-              class="secret-key-input"
-              placeholder="Create a password 🔒"
-            />
-            <button
-              type="button"
-              class="password-toggle-btn"
-              onclick="togglePasswordVisibility('signUpPassword', this)"
-              tabindex="-1"
-            >
-              👁️‍🗨️
-            </button>
+    <!-- Admin Login Page (Full Screen) -->
+    <div id="adminLoginPage" class="auth-page" style="display: none;">
+      <div class="auth-page-container">
+        <div class="auth-page-left">
+          <div class="auth-page-branding">
+            <img src="logo.png" alt="Logo" class="auth-page-logo" />
+            <h1 class="auth-page-brand-title">Learning Assistant</h1>
+            <p class="auth-page-brand-subtitle">Admin access portal</p>
           </div>
-<div class="password-input-wrapper">
-  <input
-    type="password"
-    id="signUpConfirmPassword"
-    class="secret-key-input"
-    placeholder="Confirm password 🔑"
-  />
-  <button
-    type="button"
-    class="password-toggle-btn"
-    onclick="togglePasswordVisibility('signUpConfirmPassword', this)"
-    tabindex="-1"
-  >
-    👁️‍🗨️
-  </button>
-</div>
-
-<!-- School Selection -->
-<select
-  id="signUpSchool"
-  class="secret-key-input"
-  onchange="loadTeachersForSchool(this.value)"
-  style="margin-top: 10px;"
->
-  <option value="">🏫 Select Your School (Optional)</option>
-</select>
-
-<!-- Teacher Selection (hidden until school is selected) -->
-<select
-  id="signUpTeacher"
-  class="secret-key-input"
-  style="margin-top: 10px; display: none;"
->
-  <option value="">👨‍🏫 Select Your Teacher</option>
-</select>
-          <button class="auth-btn verify-btn" onclick="handleSignUp()">
-            ✓ Sign Up
-          </button>
-          <button class="auth-btn back-btn" onclick="hideSignUp()">
-            ← Back
-          </button>
-          <p id="signUpError" class="auth-error"></p>
+          <div class="auth-page-illustration admin-illustration">
+            <div class="admin-icon">🔑</div>
+            <p class="admin-text">Authorized Access Only</p>
+          </div>
         </div>
+        
+        <div class="auth-page-right">
+          <button class="auth-back-btn" onclick="backToLanding()">← Back to Home</button>
+          
+          <div class="auth-form-container">
+            <h2 class="auth-form-title">🔑 Admin Login</h2>
+            <p class="auth-form-subtitle">Enter your admin secret key</p>
+            
+            <form id="adminLoginFormNew" class="auth-form" onsubmit="handleAdminLoginNew(event)">
+              <div class="form-group-auth">
+                <label class="form-label-auth">Admin Secret Key</label>
+                <div class="password-input-container">
+                  <input 
+                    type="password" 
+                    id="adminSecretKeyNew" 
+                    class="form-input-auth" 
+                    placeholder="Enter admin secret key"
+                    required
+                  />
+                  <button 
+                    type="button" 
+                    class="password-toggle" 
+                    onclick="togglePasswordNew('adminSecretKeyNew', this)"
+                  >
+                    👁️
+                  </button>
+                </div>
+              </div>
+              
+              <button type="submit" class="auth-submit-btn admin-btn-style" id="adminLoginSubmitBtn">
+                <span id="adminLoginBtnText">Verify & Login</span>
+                <span id="adminLoginBtnLoading" style="display: none;">Verifying...</span>
+              </button>
+              
+              <p class="auth-error-message" id="adminLoginErrorNew"></p>
+            </form>
+            
+            <div class="auth-info-box">
+              <p>🎬 Admin access includes all features plus video generation capabilities.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-        <p class="auth-note">
-          <strong>Guest Access:</strong> Try the app without an account<br />
-          <strong>Sign In/Up:</strong> Save your progress and chat history 💾<br />
-          <strong>Admin Access:</strong> All features including video generation
-          🎬
-        </p>
+    <!-- Forgot Password Page (Full Screen) -->
+    <div id="forgotPasswordPage" class="auth-page" style="display: none;">
+      <div class="auth-page-container">
+        <div class="auth-page-left">
+          <div class="auth-page-branding">
+            <img src="logo.png" alt="Logo" class="auth-page-logo" />
+            <h1 class="auth-page-brand-title">Learning Assistant</h1>
+            <p class="auth-page-brand-subtitle">Reset your password</p>
+          </div>
+          <div class="auth-page-illustration">
+            <div class="auth-illustration-character" style="font-size: 8em;">🔐</div>
+          </div>
+        </div>
+        
+        <div class="auth-page-right">
+          <button class="auth-back-btn" onclick="showSignInPage()">← Back to Sign In</button>
+          
+          <div class="auth-form-container">
+            <h2 class="auth-form-title">🔑 Reset Password</h2>
+            <p class="auth-form-subtitle">Enter your email to receive a reset link</p>
+            
+            <form id="forgotPasswordFormNew" class="auth-form" onsubmit="handleForgotPasswordNew(event)">
+              <div class="form-group-auth">
+                <label class="form-label-auth">Email Address</label>
+                <input 
+                  type="email" 
+                  id="forgotPasswordEmailNew" 
+                  class="form-input-auth" 
+                  placeholder="your@email.com"
+                  required
+                />
+              </div>
+              
+              <button type="submit" class="auth-submit-btn" id="forgotPasswordSubmitBtn">
+                <span id="forgotPasswordBtnText">Send Reset Link</span>
+                <span id="forgotPasswordBtnLoading" style="display: none;">Sending...</span>
+              </button>
+              
+              <p class="auth-error-message" id="forgotPasswordErrorNew"></p>
+              <p class="auth-success-message" id="forgotPasswordSuccessNew"></p>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -523,7 +622,311 @@
         </div>
       </div>
     </div>
-    <div class="container">
+    <!-- Landing Page -->
+    <div id="landingPage" class="landing-page" style="display: none;">
+      <!-- Navigation Bar -->
+      <nav class="landing-nav">
+        <div class="nav-container">
+          <div class="nav-logo">
+            <!--<img src="logo.png" alt="Logo" class="nav-logo-img" /> -->
+            <span class="nav-logo-text">Learning Assistant</span>
+          </div>
+          <div class="nav-links">
+            <a href="#features" class="nav-link">Features</a>
+            <a href="#pricing" class="nav-link">Pricing</a>
+            <a href="#contact" class="nav-link">Contact</a>
+            <button class="nav-btn signin" onclick="showSignIn()">Sign In</button>
+            <button class="nav-btn signup" onclick="showSignUp()">Sign Up</button>
+            <button class="nav-btn admin" onclick="showAdminLogin()">Admin</button>
+          </div>
+          <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+        </div>
+      </nav>
+
+      <!-- Hero Section -->
+      <section class="hero-section">
+        <div class="hero-content">
+          <div class="hero-text">
+            <h1 class="hero-title">
+              Welcome to Your<br/>
+              <span class="hero-highlight">Friendly Learning Assistant</span>
+            </h1>
+            <p class="hero-subtitle">
+              A safe, fun, and interactive learning companion designed especially for children. 
+              Chat with Tom & Jerry and discover a world of learning! 🐱🐭
+            </p>
+            <div class="hero-buttons">
+              <button class="hero-btn primary" onclick="showAuthModal()">Get Started Free</button>
+              <button class="hero-btn secondary" onclick="scrollToSection('features')">Learn More</button>
+            </div>
+            <div class="hero-stats">
+              <div class="stat-item">
+                <div class="stat-number">10,000+</div>
+                <div class="stat-label">Happy Learners</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Safe & Secure</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number">24/7</div>
+                <div class="stat-label">Available</div>
+              </div>
+            </div>
+          </div>
+          <div class="hero-image">
+            <div class="hero-characters">
+              <div class="hero-character tom-hero">🐱</div>
+              <div class="hero-character jerry-hero">🐭</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features Section -->
+      <section id="features" class="features-section">
+        <div class="section-container">
+          <h2 class="section-title">✨ Amazing Features</h2>
+          <p class="section-subtitle">Everything your child needs for a fun and safe learning experience</p>
+          
+          <div class="features-grid">
+            <div class="feature-card">
+              <div class="feature-icon">💬</div>
+              <h3 class="feature-title">Interactive Chat</h3>
+              <p class="feature-description">
+                Chat with friendly AI characters Tom & Jerry who make learning fun and engaging!
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">🎨</div>
+              <h3 class="feature-title">Image Generation</h3>
+              <p class="feature-description">
+                Create beautiful, child-friendly images to enhance learning and creativity.
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">🎮</div>
+              <h3 class="feature-title">Fun Games</h3>
+              <p class="feature-description">
+                Memory games, color matching, shapes, and more educational activities!
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">😊</div>
+              <h3 class="feature-title">Feelings Helper</h3>
+              <p class="feature-description">
+                A safe space to express emotions and learn about feelings with empathy.
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">📚</div>
+              <h3 class="feature-title">Social Stories</h3>
+              <p class="feature-description">
+                Visual stories that help children understand social situations better.
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">🫁</div>
+              <h3 class="feature-title">Calm Breathing</h3>
+              <p class="feature-description">
+                Relaxing breathing exercises with gentle sounds for emotional regulation.
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">🔒</div>
+              <h3 class="feature-title">Safe & Secure</h3>
+              <p class="feature-description">
+                Child-safe content with filtering and parental controls for peace of mind.
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">📊</div>
+              <h3 class="feature-title">Progress Tracking</h3>
+              <p class="feature-description">
+                Level up system and achievements to motivate continuous learning!
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pricing Section -->
+      <section id="pricing" class="pricing-section">
+        <div class="section-container">
+          <h2 class="section-title">💎 Choose Your Plan</h2>
+          <p class="section-subtitle">Start free and upgrade anytime as you grow</p>
+          
+          <div class="pricing-grid">
+            <!-- Free Plan -->
+            <div class="pricing-card free-plan">
+              <div class="pricing-badge">Most Popular</div>
+              <div class="pricing-icon">🌟</div>
+              <h3 class="pricing-title">Free</h3>
+              <div class="pricing-price">
+                <span class="price-amount">$0</span>
+                <span class="price-period">/forever</span>
+              </div>
+              <ul class="pricing-features">
+                <li>✅ 30 messages per day</li>
+                <li>✅ 1 image generation per day</li>
+                <li>✅ Basic learning activities</li>
+                <li>✅ Memory games</li>
+                <li>✅ Feelings helper</li>
+                <li>✅ Calm breathing exercises</li>
+                <li>❌ Video generation</li>
+                <li>❌ Unlimited access</li>
+              </ul>
+              <button class="pricing-btn free-btn" onclick="handlePricingClick('free')">
+                Start Learning Free
+              </button>
+            </div>
+
+            <!-- Pro Plan -->
+            <div class="pricing-card pro-plan">
+              <div class="pricing-badge premium">Premium</div>
+              <div class="pricing-icon">🚀</div>
+              <h3 class="pricing-title">Pro</h3>
+              <div class="pricing-price">
+                <span class="price-amount">$9.99</span>
+                <span class="price-period">/month</span>
+              </div>
+              <ul class="pricing-features">
+                <li>✅ Unlimited messages</li>
+                <li>✅ Unlimited image generation</li>
+                <li>✅ All learning activities</li>
+                <li>✅ Priority support</li>
+                <li>✅ Advanced games</li>
+                <li>✅ Custom characters</li>
+                <li>✅ Progress reports</li>
+                <li>✅ Ad-free experience</li>
+              </ul>
+              <button class="pricing-btn pro-btn" onclick="handlePricingClick('pro')">
+                Coming Soon
+              </button>
+            </div>
+
+            <!-- Enterprise Plan -->
+            <div class="pricing-card enterprise-plan">
+              <div class="pricing-badge">For Schools</div>
+              <div class="pricing-icon">🏫</div>
+              <h3 class="pricing-title">Enterprise</h3>
+              <div class="pricing-price">
+                <span class="price-amount">Custom</span>
+                <span class="price-period">/pricing</span>
+              </div>
+              <ul class="pricing-features">
+                <li>✅ Everything in Pro</li>
+                <li>✅ Multi-user management</li>
+                <li>✅ School-wide access</li>
+                <li>✅ Teacher dashboard</li>
+                <li>✅ Advanced analytics</li>
+                <li>✅ Custom branding</li>
+                <li>✅ Dedicated support</li>
+                <li>✅ Training sessions</li>
+              </ul>
+              <button class="pricing-btn enterprise-btn" onclick="scrollToSection('contact')">
+                Contact Us
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Contact Section -->
+      <section id="contact" class="contact-section">
+        <div class="section-container">
+          <h2 class="section-title">📧 Get In Touch</h2>
+          <p class="section-subtitle">Have questions? We'd love to hear from you!</p>
+          
+          <div class="contact-container">
+            <div class="contact-info">
+              <h3 class="contact-info-title">Contact Information</h3>
+              <div class="contact-item">
+                <span class="contact-icon">📧</span>
+                <div>
+                  <div class="contact-label">Email</div>
+                  <div class="contact-value">info@sendelightgifts.com</div>
+                </div>
+              </div>
+              <div class="contact-item">
+                <span class="contact-icon">🌍</span>
+                <div>
+                  <div class="contact-label">Availability</div>
+                  <div class="contact-value">24/7 Support</div>
+                </div>
+              </div>
+              <div class="contact-item">
+                <span class="contact-icon">⚡</span>
+                <div>
+                  <div class="contact-label">Response Time</div>
+                  <div class="contact-value">Within 24 hours</div>
+                </div>
+              </div>
+            </div>
+
+            <form class="contact-form" id="contactForm" onsubmit="handleContactSubmit(event)">
+              <div class="form-group">
+                <label class="form-label">Your Name</label>
+                <input type="text" class="form-input" id="contactName" placeholder="Enter your name" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="form-input" id="contactEmail" placeholder="your@email.com" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Message</label>
+                <textarea class="form-textarea" id="contactMessage" placeholder="Tell us how we can help..." rows="5" required></textarea>
+              </div>
+              <button type="submit" class="form-submit-btn" id="contactSubmitBtn">
+                <span id="contactBtnText">Send Message 📤</span>
+                <span id="contactBtnLoading" style="display: none;">Sending... ⏳</span>
+              </button>
+              <div id="contactFormMessage" class="form-message"></div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="landing-footer">
+        <div class="footer-container">
+          <div class="footer-content">
+            <div class="footer-section">
+              <!-- <img src="logo.png" alt="Logo" class="footer-logo" /> -->
+              <p class="footer-description">
+                A safe and fun learning companion for children, designed with care and powered by AI.
+              </p>
+            </div>
+            <div class="footer-section">
+              <h4 class="footer-title">Quick Links</h4>
+              <a href="#features" class="footer-link">Features</a>
+              <a href="#pricing" class="footer-link">Pricing</a>
+              <a href="#contact" class="footer-link">Contact</a>
+              <a href="#" onclick="showTermsModal(); return false;" class="footer-link">Terms & Privacy</a>
+            </div>
+            <div class="footer-section">
+              <h4 class="footer-title">Support</h4>
+              <a href="#" onclick="scrollToSection('contact')" class="footer-link">Help Center</a>
+              <a href="#" onclick="scrollToSection('contact')" class="footer-link">Report an Issue</a>
+              <a href="https://" target="_blank" class="footer-link">💛 Donate</a>
+            </div>
+          </div>
+          <div class="footer-bottom">
+            <p>&copy; 2025 Learning Assistant. Made with ❤️ for children everywhere.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Main App Container (existing content) -->
+    <div class="container" id="mainApp" style="display: none;">
       <div class="header">
         <img src="logo.png" alt="App Logo" class="logo" />
         <h1 class="title">🌟 Your Learning Assistant 🌟</h1>
