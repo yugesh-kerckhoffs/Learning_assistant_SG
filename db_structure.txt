@@ -1,0 +1,201 @@
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Create profiles table (stores user names and info)
+CREATE TABLE public.profiles (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  display_name TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create chat_history table (stores all chat messages)
+CREATE TABLE public.chat_history (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
+  message_text TEXT NOT NULL,
+  mode TEXT DEFAULT 'general',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create generated_images table (stores image generation history)
+CREATE TABLE public.generated_images (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  prompt TEXT NOT NULL,
+  mode TEXT DEFAULT 'general',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create generated_videos table (stores video generation history)
+CREATE TABLE public.generated_videos (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  prompt TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create memory_game_sessions table (stores memory game results)
+CREATE TABLE public.memory_game_sessions (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  level_reached INTEGER NOT NULL,
+  moves_used INTEGER NOT NULL,
+  completed BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create colors_shapes_sessions table (stores colors & shapes game results)
+CREATE TABLE public.colors_shapes_sessions (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  game_type TEXT NOT NULL CHECK (game_type IN ('colors', 'shapes')),
+  level_reached INTEGER NOT NULL,
+  completed BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create indexes for better performance
+CREATE INDEX idx_chat_history_user_id ON public.chat_history(user_id);
+CREATE INDEX idx_chat_history_created_at ON public.chat_history(created_at);
+CREATE INDEX idx_generated_images_user_id ON public.generated_images(user_id);
+CREATE INDEX idx_generated_videos_user_id ON public.generated_videos(user_id);
+CREATE INDEX idx_memory_game_user_id ON public.memory_game_sessions(user_id);
+CREATE INDEX idx_colors_shapes_user_id ON public.colors_shapes_sessions(user_id);
+
+-- Enable Row Level Security (RLS) on all tables
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chat_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.generated_images ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.generated_videos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.memory_game_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.colors_shapes_sessions ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies for profiles
+CREATE POLICY "Users can view their own profile"
+  ON public.profiles FOR SELECT
+  USING (auth.uid() = id);
+
+CREATE POLICY "Users can update their own profile"
+  ON public.profiles FOR UPDATE
+  USING (auth.uid() = id);
+
+CREATE POLICY "Users can insert their own profile"
+  ON public.profiles FOR INSERT
+  WITH CHECK (auth.uid() = id);
+
+-- RLS Policies for chat_history
+CREATE POLICY "Users can view their own chat history"
+  ON public.chat_history FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own chat messages"
+  ON public.chat_history FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- RLS Policies for generated_images
+CREATE POLICY "Users can view their own generated images"
+  ON public.generated_images FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own image generations"
+  ON public.generated_images FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- RLS Policies for generated_videos
+CREATE POLICY "Users can view their own generated videos"
+  ON public.generated_videos FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own video generations"
+  ON public.generated_videos FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- RLS Policies for memory_game_sessions
+CREATE POLICY "Users can view their own memory game sessions"
+  ON public.memory_game_sessions FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own memory game sessions"
+  ON public.memory_game_sessions FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- RLS Policies for colors_shapes_sessions
+CREATE POLICY "Users can view their own colors & shapes sessions"
+  ON public.colors_shapes_sessions FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own colors & shapes sessions"
+  ON public.colors_shapes_sessions FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- Function to automatically create profile when user signs up
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, display_name)
+  VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'display_name', 'Friend'));
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger to create profile automatically
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Add level and progress fields to profiles table
+ALTER TABLE public.profiles
+ADD COLUMN user_level INTEGER DEFAULT 1,
+ADD COLUMN session_start_time BIGINT DEFAULT EXTRACT(EPOCH FROM NOW()) * 1000;
+
+-- Create a table to track level history
+CREATE TABLE public.user_level_history (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  level INTEGER NOT NULL,
+  reached_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE public.user_level_history ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy
+CREATE POLICY "Users can view their own level history"
+  ON public.user_level_history FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own level history"
+  ON public.user_level_history FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- Create index
+CREATE INDEX idx_user_level_history_user_id ON public.user_level_history(user_id);
+
+-- Add columns to store image/video data
+ALTER TABLE public.generated_images
+ADD COLUMN image_data TEXT,
+ADD COLUMN mime_type TEXT;
+
+ALTER TABLE public.generated_videos
+ADD COLUMN video_data TEXT,
+ADD COLUMN mime_type TEXT;
+
+-- Add a thumbnail column for faster loading
+ALTER TABLE public.generated_images
+ADD COLUMN thumbnail_data TEXT;
+
+ALTER TABLE public.generated_videos
+ADD COLUMN thumbnail_data TEXT;
+
+
+-- Add terms acceptance column to profiles table
+ALTER TABLE public.profiles
+ADD COLUMN IF NOT EXISTS terms_accepted BOOLEAN DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS terms_accepted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+
+-- Create index for faster queries
+CREATE INDEX IF NOT EXISTS idx_profiles_terms_accepted 
+ON public.profiles(terms_accepted);
+

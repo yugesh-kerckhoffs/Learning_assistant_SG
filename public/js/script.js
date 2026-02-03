@@ -5,7 +5,7 @@ marked.setOptions({
   mangle: false,
 });
 // Initialize Supabase client
-
+window.speechSynthesis.onvoiceschanged = () => {};
 window.supabaseClient = null;
 
 // User data
@@ -82,6 +82,77 @@ async function initializeSupabase() {
   // Normal session check for regular logins
   checkExistingSession();
 })();
+
+// Load schools for signup dropdown
+async function loadSchoolsForSignup() {
+  if (!window.supabaseClient) {
+    console.log('⏳ Waiting for Supabase to initialize...');
+    setTimeout(loadSchoolsForSignup, 500);
+    return;
+  }
+
+  try {
+    const { data: schools, error } = await window.supabaseClient
+      .from('schools')
+      .select('id, school_name')
+      .order('school_name');
+
+    if (error) throw error;
+
+    const schoolSelect = document.getElementById('signUpSchool');
+    if (!schoolSelect) return;
+
+    // Clear existing options except the first one
+    schoolSelect.innerHTML = '<option value="">🏫 Select Your School (Optional)</option>';
+
+    schools.forEach(school => {
+      const option = document.createElement('option');
+      option.value = school.id;
+      option.textContent = school.school_name;
+      schoolSelect.appendChild(option);
+    });
+
+    console.log('✅ Loaded', schools.length, 'schools');
+  } catch (error) {
+    console.error('Error loading schools:', error);
+  }
+}
+
+// Load teachers when school is selected
+async function loadTeachersForSchool(schoolId) {
+  const teacherSelect = document.getElementById('signUpTeacher');
+  if (!teacherSelect) return;
+
+  if (!schoolId) {
+    teacherSelect.style.display = 'none';
+    teacherSelect.innerHTML = '<option value="">👨‍🏫 Select Your Teacher</option>';
+    return;
+  }
+
+  try {
+    const { data: teachers, error } = await window.supabaseClient
+      .from('teachers')
+      .select('id, teacher_name, teacher_email')
+      .eq('school_id', schoolId)
+      .order('teacher_name');
+
+    if (error) throw error;
+
+    teacherSelect.innerHTML = '<option value="">👨‍🏫 Select Your Teacher</option>';
+
+    teachers.forEach(teacher => {
+      const option = document.createElement('option');
+      option.value = teacher.id;
+      option.textContent = `${teacher.teacher_name} (${teacher.teacher_email})`;
+      teacherSelect.appendChild(option);
+    });
+
+    teacherSelect.style.display = 'block';
+    console.log('✅ Loaded', teachers.length, 'teachers for school');
+  } catch (error) {
+    console.error('Error loading teachers:', error);
+  }
+}
 
 async function processRecoveryToken() {
   const hash = window.location.hash;
@@ -966,6 +1037,9 @@ function showSignUp() {
   document.getElementById("signUpForm").style.display = "block";
   document.getElementById("signUpName").focus();
   document.getElementById("signUpError").textContent = "";
+  
+  // Load schools when signup form opens
+  loadSchoolsForSignup();
 }
 
 // Hide Sign Up Form
@@ -1027,6 +1101,7 @@ async function handleSignIn() {
     showNotification(
       `🎉 Welcome back, ${currentUserName}! You're at Level ${userLevel}!`
     );
+     checkTermsAcceptance();
   } catch (error) {
     console.error("Sign in error:", error);
     errorElement.textContent = "⚠️ Connection error. Please try again.";
@@ -1058,13 +1133,18 @@ async function handleSignUp() {
     return;
   }
 
-  try {
+try {
+    const schoolId = document.getElementById('signUpSchool').value || null;
+    const teacherId = document.getElementById('signUpTeacher').value || null;
+
     const { data, error } = await window.supabaseClient.auth.signUp({
       email: email,
       password: password,
       options: {
         data: {
           display_name: name,
+          school_id: schoolId,
+          assigned_teacher_id: teacherId,
         },
       },
     });
@@ -1074,16 +1154,54 @@ async function handleSignUp() {
       return;
     }
 
-    // Success!
-    currentUser = data.user;
-    currentUserName = name;
-    userRole = "user";
-    sessionToken = data.session ? data.session.access_token : null;
+    // Check if email confirmation is required
+    if (data.user && !data.session) {
+      // Email confirmation enabled - show message
+      errorElement.textContent = "";
+      showNotification(
+        `📧 Account created! Check your email to confirm before signing in.`
+      );
+      
+      document.getElementById("signUpName").value = "";
+      document.getElementById("signUpEmail").value = "";
+      document.getElementById("signUpPassword").value = "";
+      document.getElementById("signUpConfirmPassword").value = "";
+      
+      setTimeout(() => {
+        hideSignUp();
+      }, 3000);
+      
+    } else if (data.session) {
+      // User signed in immediately - show terms
+      currentUser = data.user;
+      currentUserName = name;
+      userRole = "user";
+      sessionToken = data.session.access_token;
 
-    closeAuthModal();
-    showNotification(
-      `🎉 Welcome, ${currentUserName}! Your account is created!`
-    );
+      closeAuthModal();
+      showNotification(
+        `🎉 Welcome, ${currentUserName}! Your account is created!`
+      );
+      
+      // Show terms modal for new users - MUST accept before using app
+      await checkTermsAcceptance();
+    }
+
+    // Save school and teacher to profiles table
+      if (schoolId || teacherId) {
+        try {
+          await window.supabaseClient
+            .from('profiles')
+            .update({
+              school_id: schoolId,
+              assigned_teacher_id: teacherId
+            })
+            .eq('id', data.user.id);
+          console.log('✅ School and teacher saved to profile');
+        } catch (profileError) {
+          console.error('Error saving school/teacher:', profileError);
+        }
+      }
   } catch (error) {
     console.error("Sign up error:", error);
     errorElement.textContent = "⚠️ Connection error. Please try again.";
@@ -1120,6 +1238,170 @@ async function logout() {
   localStorage.removeItem("userRole");
   localStorage.removeItem("sessionToken");
   location.reload();
+}
+// ========================================
+// Terms of Service Functions
+// ========================================
+
+async function checkTermsAcceptance() {
+  if (userRole !== "user" || !currentUser) {
+    return;
+  }
+
+  try {
+    // Check database for terms acceptance
+    const { data: profile, error } = await window.supabaseClient
+      .from("profiles")
+      .select("terms_accepted")
+      .eq("id", currentUser.id)
+      .single();
+
+    if (error) {
+      console.error("Error checking terms:", error);
+      return;
+    }
+
+    // If terms_accepted is NULL or false, show the modal
+    if (profile.terms_accepted !== true) {
+      console.log("📜 User needs to accept terms");
+      showTermsModal();
+    }
+  } catch (error) {
+    console.error("Error in checkTermsAcceptance:", error);
+  }
+}
+
+function showTermsModal() {
+  const termsModal = document.getElementById("termsModal");
+  const authModal = document.getElementById("authModal");
+
+  if (authModal) {
+    authModal.style.display = "none";
+  }
+
+  // Hide main app content until terms accepted
+  const container = document.querySelector(".container");
+  if (container) {
+    container.style.display = "none";
+  }
+
+  termsModal.style.display = "flex";
+  termsModal.style.opacity = "0";
+
+  setTimeout(() => {
+    termsModal.style.opacity = "1";
+  }, 100);
+
+  document.getElementById("termsCheckbox").checked = false;
+  document.getElementById("acceptTermsBtn").disabled = true;
+
+  const termsContent = document.querySelector(".terms-content");
+  if (termsContent) {
+    termsContent.scrollTop = 0;
+  }
+}
+
+function hideTermsModal() {
+  const termsModal = document.getElementById("termsModal");
+  termsModal.style.opacity = "0";
+  setTimeout(() => {
+    termsModal.style.display = "none";
+    
+    // Show main app content after accepting
+    const container = document.querySelector(".container");
+    if (container) {
+      container.style.display = "block";
+    }
+  }, 300);
+}
+
+function handleTermsCheckbox() {
+  const checkbox = document.getElementById("termsCheckbox");
+  const acceptBtn = document.getElementById("acceptTermsBtn");
+
+  if (checkbox.checked) {
+    acceptBtn.disabled = false;
+    acceptBtn.style.cursor = "pointer";
+  } else {
+    acceptBtn.disabled = true;
+    acceptBtn.style.cursor = "not-allowed";
+  }
+}
+
+async function acceptTerms() {
+  const checkbox = document.getElementById("termsCheckbox");
+
+  if (!checkbox.checked) {
+    showNotification("⚠️ Please check the box to accept the terms");
+    return;
+  }
+
+  if (!currentUser) {
+    showNotification("❌ Error: User not authenticated");
+    return;
+  }
+
+  try {
+    // Save to database
+    const { error } = await window.supabaseClient
+      .from("profiles")
+      .update({
+        terms_accepted: true,
+        terms_accepted_at: new Date().toISOString(),
+      })
+      .eq("id", currentUser.id);
+
+    if (error) {
+      console.error("Error saving terms acceptance:", error);
+      showNotification("❌ Error saving acceptance. Please try again.");
+      return;
+    }
+
+    console.log("✅ Terms accepted and saved to database");
+
+    hideTermsModal();
+    showNotification("✅ Terms accepted! Welcome to the app!");
+    
+    // Load user's level and progress if available
+    if (window.supabaseClient) {
+      try {
+        const { data: profile } = await window.supabaseClient
+          .from("profiles")
+          .select("user_level, session_start_time")
+          .eq("id", currentUser.id)
+          .single();
+
+        if (profile && profile.user_level) {
+          userLevel = profile.user_level;
+          sessionStartTime = profile.session_start_time || Date.now();
+          updateLevelDisplay();
+          updateProgressBar();
+        }
+      } catch (err) {
+        console.log("Could not load user progress:", err);
+      }
+    }
+  } catch (error) {
+    console.error("Error accepting terms:", error);
+    showNotification("❌ Error saving acceptance. Please try again.");
+  }
+}
+
+async function declineTerms() {
+  const confirmDecline = confirm(
+    "⚠️ You must accept the Terms of Service to use this app.\n\n" +
+    "If you decline, you will be logged out.\n\n" +
+    "Are you sure you want to decline?"
+  );
+
+  if (confirmDecline) {
+    showNotification("👋 Terms declined. Logging out...");
+
+    setTimeout(async () => {
+      // Just logout - don't delete anything
+      await logout();
+    }, 1500);
+  }
 }
 
 async function checkExistingSession() {
@@ -1191,6 +1473,7 @@ async function checkExistingSession() {
         showNotification(
           `✅ Welcome back, ${currentUserName}! You're at Level ${userLevel}!`
         );
+        checkTermsAcceptance();
         return;
       }
     } catch (error) {
@@ -1692,20 +1975,51 @@ function stopCurrentSpeech() {
 function speakText(text, messageId) {
   if (!voiceEnabled || !("speechSynthesis" in window)) return;
   if (messageId !== lastMessageId) return;
+
   stopCurrentSpeech();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 0.8;
-  utterance.pitch = 1;
-  utterance.volume = currentVolume;
+  window.speechSynthesis.cancel();
+
+  // 🔇 Remove emojis completely
+  const cleanText = text.replace(
+    /([\u2700-\u27BF]|[\uE000-\uF8FF]|[\uD83C-\uDBFF\uDC00-\uDFFF])/g,
+    ""
+  );
+
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+
+  const voices = window.speechSynthesis.getVoices();
+
+  // 🎯 PRIORITY LIST — BEST → WORST (Windows)
+  const preferredVoice =
+    voices.find(v => v.name === "Google US English") ||
+    voices.find(v => v.name === "Microsoft Aria Online (Natural) - English (United States)") ||
+    voices.find(v => v.name === "Microsoft Jenny Online (Natural) - English (United States)") ||
+    voices.find(v => v.name === "Microsoft Guy Online (Natural) - English (United States)") ||
+    voices.find(v => v.lang === "en-US") ||
+    voices[0];
+
+  if (preferredVoice) {
+    utterance.voice = preferredVoice;
+  }
+
+  // 🧘‍♀️ PERFECT CALM SETTINGS (tested values)
+  utterance.rate = 0.78;    // slower, clearer
+  utterance.pitch = 0.85;   // removes sharp robotic tone
+  utterance.volume = Math.min(currentVolume, 0.9);
+
   utterance.onend = () => {
     currentUtterance = null;
   };
+
   utterance.onerror = () => {
     currentUtterance = null;
   };
+
   currentUtterance = utterance;
-  speechSynthesis.speak(utterance);
+  window.speechSynthesis.speak(utterance);
 }
+
+
 
 function updateVolume() {
   currentVolume = document.getElementById("volume").value / 100;
@@ -1771,6 +2085,8 @@ async function sendMessage() {
         conversationHistory: conversationHistory,
         role: userRole,
         sessionToken: sessionToken,
+        userId: currentUser ? currentUser.id : null,
+        userEmail: currentUser ? currentUser.email : null,
       }),
     });
 
@@ -3551,5 +3867,13 @@ window.addEventListener("beforeunload", function () {
 document.addEventListener("visibilitychange", function () {
   if (document.hidden) {
     // Optionally pause sounds when tab is hidden
+  }
+});
+
+// Terms checkbox event listener
+document.addEventListener("DOMContentLoaded", function () {
+  const termsCheckbox = document.getElementById("termsCheckbox");
+  if (termsCheckbox) {
+    termsCheckbox.addEventListener("change", handleTermsCheckbox);
   }
 });

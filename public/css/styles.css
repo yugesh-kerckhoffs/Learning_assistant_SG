@@ -334,6 +334,52 @@ body {
   box-shadow: 0 0 15px rgba(79, 195, 247, 0.3);
 }
 
+/* Special styling for select dropdowns */
+select.secret-key-input {
+  background: linear-gradient(135deg, rgba(79, 195, 247, 0.2), rgba(102, 187, 106, 0.2));
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  position: relative;
+  padding-right: 45px;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 18px;
+}
+
+select.secret-key-input:hover {
+  background: linear-gradient(135deg, rgba(79, 195, 247, 0.3), rgba(102, 187, 106, 0.3));
+  border-color: #66bb6a;
+}
+
+select.secret-key-input:focus {
+  background: linear-gradient(135deg, rgba(79, 195, 247, 0.3), rgba(102, 187, 106, 0.3));
+  border-color: #4fc3f7;
+  box-shadow: 0 0 20px rgba(79, 195, 247, 0.5);
+}
+
+/* Dropdown option styling */
+select.secret-key-input option {
+  background: #1a1a2e;
+  color: white;
+  padding: 10px;
+  font-weight: 500;
+}
+
+select.secret-key-input option:hover {
+  background: #16213e;
+}
+
+/* First option (placeholder) */
+select.secret-key-input option:first-child {
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+}
+
 .auth-error {
   color: #ff6b6b;
   text-align: center;
@@ -588,6 +634,329 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4);
 }
+
+/* ============================================ */
+/* TERMS OF SERVICE MODAL STYLES */
+/* Add this CSS to your styles.css file at the end */
+/* ============================================ */
+
+/* Terms Modal Base */
+.terms-content {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(79, 195, 247, 0.5);
+  max-width: 700px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  text-align: left;
+  animation: slideIn 0.4s ease-out;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(79, 195, 247, 0.5) rgba(255, 255, 255, 0.1);
+}
+
+/* Custom Scrollbar for Webkit browsers */
+.terms-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terms-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.terms-content::-webkit-scrollbar-thumb {
+  background: rgba(79, 195, 247, 0.5);
+  border-radius: 10px;
+}
+
+.terms-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(79, 195, 247, 0.7);
+}
+
+/* Terms Header */
+.terms-header {
+  text-align: center;
+  margin-bottom: 25px;
+  border-bottom: 2px solid rgba(79, 195, 247, 0.3);
+  padding-bottom: 20px;
+}
+
+.terms-header h2 {
+  color: #4fc3f7;
+  font-size: 1.8em;
+  margin: 15px 0 10px 0;
+}
+
+.terms-subtitle {
+  color: #81c784;
+  font-size: 1em;
+  margin: 0;
+}
+
+/* Terms Body */
+.terms-body {
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  font-size: 0.95em;
+}
+
+/* Terms Sections */
+.terms-section {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  border-left: 4px solid #4fc3f7;
+  transition: all 0.3s ease;
+}
+
+.terms-section:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-left-color: #81c784;
+}
+
+/* Highlighted Section (Data Collection) */
+.highlight-section {
+  background: rgba(255, 193, 7, 0.1);
+  border-left: 4px solid #ffc107;
+}
+
+.highlight-section:hover {
+  background: rgba(255, 193, 7, 0.15);
+}
+
+/* Section Headings */
+.terms-section h3 {
+  color: #4fc3f7;
+  font-size: 1.2em;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.highlight-section h3 {
+  color: #ffc107;
+}
+
+/* Paragraphs */
+.terms-section p {
+  margin-bottom: 10px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.terms-section p strong {
+  color: #fff;
+}
+
+/* Lists */
+.terms-list {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+.terms-list li {
+  margin-bottom: 10px;
+  color: rgba(255, 255, 255, 0.85);
+  position: relative;
+  padding-left: 10px;
+}
+
+.terms-list li::marker {
+  color: #4fc3f7;
+}
+
+.terms-list li strong {
+  color: #fff;
+}
+
+/* Nested Lists */
+.terms-list ul {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  padding-left: 20px;
+}
+
+.terms-list ul li {
+  margin-bottom: 5px;
+  font-size: 0.95em;
+}
+
+/* Terms Footer */
+.terms-footer {
+  background: rgba(79, 195, 247, 0.1);
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  margin-top: 20px;
+  border: 1px solid rgba(79, 195, 247, 0.3);
+}
+
+.terms-footer p {
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  font-size: 0.9em;
+  line-height: 1.6;
+}
+
+/* Terms Actions */
+.terms-actions {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 2px solid rgba(79, 195, 247, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Checkbox Wrapper */
+.terms-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(79, 195, 247, 0.3);
+}
+
+.terms-checkbox-wrapper:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #4fc3f7;
+}
+
+/* Custom Checkbox */
+.terms-checkbox {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  accent-color: #4fc3f7;
+  flex-shrink: 0;
+}
+
+.terms-checkbox-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1em;
+  line-height: 1.4;
+  user-select: none;
+}
+
+/* Accept Button */
+.accept-btn {
+  background: linear-gradient(135deg, #66bb6a, #4caf50);
+  color: white;
+  font-size: 1.1em;
+  padding: 15px 30px;
+}
+
+.accept-btn:disabled {
+  background: linear-gradient(135deg, #555, #444);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.accept-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.accept-btn:not(:disabled):hover {
+  background: linear-gradient(135deg, #4caf50, #66bb6a);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(102, 187, 106, 0.4);
+}
+
+/* Decline Button */
+.decline-btn {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  color: white;
+  font-size: 1em;
+  padding: 12px 30px;
+}
+
+.decline-btn:hover {
+  background: linear-gradient(135deg, #d32f2f, #f44336);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(244, 67, 54, 0.4);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .terms-content {
+    padding: 20px;
+    max-width: 95%;
+  }
+
+  .terms-header h2 {
+    font-size: 1.4em;
+  }
+
+  .terms-section {
+    padding: 15px;
+  }
+
+  .terms-section h3 {
+    font-size: 1.1em;
+  }
+
+  .terms-body {
+    font-size: 0.9em;
+  }
+
+  .terms-checkbox-text {
+    font-size: 0.9em;
+  }
+
+  .accept-btn {
+    font-size: 1em;
+    padding: 12px 20px;
+  }
+
+  .decline-btn {
+    font-size: 0.95em;
+    padding: 10px 20px;
+  }
+}
+
+/* Animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Smooth scroll for terms content */
+.terms-content {
+  scroll-behavior: smooth;
+}
+
+/* Highlight important text */
+.terms-section strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Link styling (if any) */
+.terms-section a {
+  color: #4fc3f7;
+  text-decoration: underline;
+  transition: color 0.3s ease;
+}
+
+.terms-section a:hover {
+  color: #81c784;
+}
+
 .exit-btn {
   background: linear-gradient(135deg, #ff6b6b, #ee5a24) !important;
   font-weight: bold;

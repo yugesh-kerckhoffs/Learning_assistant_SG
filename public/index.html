@@ -187,22 +187,41 @@
               👁️‍🗨️
             </button>
           </div>
-          <div class="password-input-wrapper">
-            <input
-              type="password"
-              id="signUpConfirmPassword"
-              class="secret-key-input"
-              placeholder="Confirm password 🔒"
-            />
-            <button
-              type="button"
-              class="password-toggle-btn"
-              onclick="togglePasswordVisibility('signUpConfirmPassword', this)"
-              tabindex="-1"
-            >
-              👁️‍🗨️
-            </button>
-          </div>
+<div class="password-input-wrapper">
+  <input
+    type="password"
+    id="signUpConfirmPassword"
+    class="secret-key-input"
+    placeholder="Confirm password 🔑"
+  />
+  <button
+    type="button"
+    class="password-toggle-btn"
+    onclick="togglePasswordVisibility('signUpConfirmPassword', this)"
+    tabindex="-1"
+  >
+    👁️‍🗨️
+  </button>
+</div>
+
+<!-- School Selection -->
+<select
+  id="signUpSchool"
+  class="secret-key-input"
+  onchange="loadTeachersForSchool(this.value)"
+  style="margin-top: 10px;"
+>
+  <option value="">🏫 Select Your School (Optional)</option>
+</select>
+
+<!-- Teacher Selection (hidden until school is selected) -->
+<select
+  id="signUpTeacher"
+  class="secret-key-input"
+  style="margin-top: 10px; display: none;"
+>
+  <option value="">👨‍🏫 Select Your Teacher</option>
+</select>
           <button class="auth-btn verify-btn" onclick="handleSignUp()">
             ✓ Sign Up
           </button>
@@ -274,6 +293,234 @@
             font-size: 0.9em;
           "
         ></p>
+      </div>
+    </div>
+    <!-- ============================================ -->
+    <!-- TERMS OF SERVICE MODAL -->
+    <!-- Add this code AFTER the Password Reset Modal (around line 280) -->
+    <!-- and BEFORE the <div class="container"> -->
+    <!-- ============================================ -->
+
+    <!-- Terms of Service Modal -->
+    <div id="termsModal" class="auth-modal" style="display: none">
+      <div class="terms-content">
+        <div class="terms-header">
+          <img src="logo.png" alt="App Logo" class="logo" />
+          <h2>📜 Terms of Service & Privacy Policy</h2>
+          <p class="terms-subtitle">Please read and accept to continue</p>
+        </div>
+
+        <div class="terms-body">
+          <!-- Introduction -->
+          <div class="terms-section">
+            <h3>🌟 Welcome to Our Learning Assistant</h3>
+            <p>
+              By using this application, you agree to these terms. This service
+              is designed to provide a safe, educational, and supportive
+              environment for children with special needs.
+            </p>
+          </div>
+
+          <!-- Data Collection -->
+          <div class="terms-section highlight-section">
+            <h3>📊 Data Collection & Monitoring</h3>
+            <p><strong>Important Notice for Parents and Guardians:</strong></p>
+            <ul class="terms-list">
+              <li>
+                <strong>Chat History:</strong> We collect and store all chat
+                conversations between the child and the AI assistant.
+              </li>
+              <li>
+                <strong>Usage Data:</strong> We track learning activities, game
+                progress, and interaction patterns.
+              </li>
+              <li>
+                <strong>Generated Content:</strong> Images and videos created by
+                the child are stored for review purposes.
+              </li>
+              <li>
+                <strong>Purpose:</strong> This data is collected to:
+                <ul>
+                  <li>Monitor child safety and appropriate content usage</li>
+                  <li>Generate progress reports for parents/guardians</li>
+                  <li>Report concerning behavior to designated supervisors</li>
+                  <li>Improve the learning experience</li>
+                </ul>
+              </li>
+              <li>
+                <strong>Access:</strong> Parents, guardians, and authorized
+                educational staff may access this data at any time.
+              </li>
+              <li>
+                <strong>Alerts:</strong> Inappropriate requests or concerning
+                patterns will trigger immediate notifications to supervisors.
+              </li>
+            </ul>
+          </div>
+
+          <!-- Privacy & Security -->
+          <div class="terms-section">
+            <h3>🔒 Privacy & Security</h3>
+            <ul class="terms-list">
+              <li>
+                Personal information is encrypted and stored securely on
+                protected servers.
+              </li>
+              <li>
+                We do not share data with third parties except as required by
+                law or for child safety concerns.
+              </li>
+              <li>
+                Parents/guardians have the right to request data deletion at any
+                time.
+              </li>
+              <li>
+                Account security is the responsibility of the parent/guardian.
+              </li>
+            </ul>
+          </div>
+
+          <!-- Service Usage -->
+          <div class="terms-section">
+            <h3>🎯 Acceptable Use</h3>
+            <ul class="terms-list">
+              <li>This service is intended for educational purposes only.</li>
+              <li>
+                Users must not attempt to generate inappropriate or harmful
+                content.
+              </li>
+              <li>
+                The AI assistant will refuse requests for unsafe or
+                inappropriate content.
+              </li>
+              <li>
+                Parental supervision is recommended during all interactions with
+                the app.
+              </li>
+              <li>Abuse of the service may result in account termination.</li>
+            </ul>
+          </div>
+
+          <!-- AI Limitations -->
+          <div class="terms-section">
+            <h3>🤖 AI Assistant Disclaimer</h3>
+            <ul class="terms-list">
+              <li>
+                The AI assistant is a tool to support learning, not replace
+                human supervision.
+              </li>
+              <li>
+                While designed for safety, AI responses may occasionally be
+                imperfect or unexpected.
+              </li>
+              <li>
+                The service is not a substitute for professional medical,
+                therapy, or educational advice.
+              </li>
+              <li>
+                We continuously improve the AI but cannot guarantee 100%
+                accuracy in all responses.
+              </li>
+            </ul>
+          </div>
+
+          <!-- Parental Rights -->
+          <div class="terms-section">
+            <h3>👨‍👩‍👧‍👦 Parent/Guardian Rights</h3>
+            <ul class="terms-list">
+              <li>Request access to all collected data at any time</li>
+              <li>Request deletion of account and associated data</li>
+              <li>Receive notifications of concerning interactions</li>
+              <li>Export chat history and progress reports</li>
+              <li>Contact support for any concerns or questions</li>
+            </ul>
+          </div>
+
+          <!-- Content Generation -->
+          <div class="terms-section">
+            <h3>🎨 Image & Video Generation</h3>
+            <ul class="terms-list">
+              <li>
+                Generated images and videos are created using AI and stored in
+                your account.
+              </li>
+              <li>
+                We apply safety filters to prevent inappropriate content
+                generation.
+              </li>
+              <li>
+                All generated media is logged and can be reviewed by parents.
+              </li>
+              <li>
+                Video generation may be restricted to admin accounts for safety
+                purposes.
+              </li>
+            </ul>
+          </div>
+
+          <!-- Service Modifications -->
+          <div class="terms-section">
+            <h3>🔄 Service Changes</h3>
+            <p>
+              We reserve the right to modify, suspend, or discontinue any part
+              of the service at any time. We will notify users of significant
+              changes to these terms.
+            </p>
+          </div>
+
+          <!-- Limitation of Liability -->
+          <div class="terms-section">
+            <h3>⚖️ Limitation of Liability</h3>
+            <p>
+              This service is provided "as is" without warranties. We are not
+              liable for any indirect, incidental, or consequential damages
+              arising from use of the service. Parents/guardians are responsible
+              for supervising their child's use of this application.
+            </p>
+          </div>
+
+          <!-- Contact -->
+          <div class="terms-section">
+            <h3>📧 Contact Us</h3>
+            <p>
+              For questions, concerns, or data requests, please contact us
+              at:<br />
+              <strong>info@sendelightgifts.com</strong>
+            </p>
+          </div>
+
+          <!-- Last Updated -->
+          <div class="terms-footer">
+            <p>
+              <strong>Last Updated:</strong> December 24, 2025<br />
+              By clicking "I Accept," you acknowledge that you have read,
+              understood, and agree to these Terms of Service and Privacy
+              Policy.
+            </p>
+          </div>
+        </div>
+
+        <!-- Accept Button -->
+        <div class="terms-actions">
+          <label class="terms-checkbox-wrapper">
+            <input type="checkbox" id="termsCheckbox" class="terms-checkbox" />
+            <span class="terms-checkbox-text"
+              >I have read and accept the Terms of Service & Privacy
+              Policy</span
+            >
+          </label>
+          <button
+            class="auth-btn accept-btn"
+            id="acceptTermsBtn"
+            onclick="acceptTerms()"
+            disabled
+          >
+            ✅ I Accept & Continue
+          </button>
+          <button class="auth-btn decline-btn" onclick="declineTerms()">
+            ❌ Decline & Logout
+          </button>
+        </div>
       </div>
     </div>
     <div class="container">
