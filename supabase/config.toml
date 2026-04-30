@@ -1,0 +1,34 @@
+project_id = "wjrjhsllhcjefnittdlv"
+
+[functions.chat]
+verify_jwt = false
+
+[functions.verify-admin]
+verify_jwt = false
+
+[functions.verify-session]
+verify_jwt = false
+
+[functions.contact]
+verify_jwt = false
+
+[functions.check-email-exists]
+verify_jwt = false
+
+[functions.speech-to-text]
+verify_jwt = false
+
+[functions.toggle-maintenance]
+verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.verify-payment]
+verify_jwt = false
+
+[functions.check-subscription]
+verify_jwt = false
+
+[functions.healthz-monitor]
+verify_jwt = false

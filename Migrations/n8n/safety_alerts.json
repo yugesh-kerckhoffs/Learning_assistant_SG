@@ -1,0 +1,188 @@
+{
+  "name": "Safety Alerts - Child Safety Notification",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/2 * * * *"
+            }
+          ]
+        }
+      },
+      "id": "40550185-1d2a-4db8-a3c2-f67457074830",
+      "name": "Poll Every 2 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        464,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT sa.id, sa.flagged_message, sa.detection_method, sa.severity_level,\nsa.created_at, sa.emails_to_notify, sa.user_id, p.display_name\nFROM safety_alerts sa\nLEFT JOIN profiles p ON sa.user_id = p.id\nWHERE sa.created_at > NOW() - INTERVAL '3 minutes'\nAND sa.severity_level IN ('critical', 'high', 'medium', 'low')\nORDER BY sa.created_at DESC",
+        "options": {}
+      },
+      "id": "88da63f8-2d0b-4d37-9a70-fdfb826a170f",
+      "name": "Fetch New Safety Alerts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        688,
+        384
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "DDff0ybPiA0wrzgi",
+          "name": "Supabase Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "has-rows",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "74ff4052-5f9d-444d-84ca-3edf48fbbeed",
+      "name": "Has New Alerts?",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        912,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.item.json;\n\nconst severityLevel = (item.severity_level || 'medium').toLowerCase();\nconst displayName = item.display_name || 'Unknown Child';\nconst flaggedMessage = item.flagged_message || '';\nconst createdAt = item.created_at\n  ? new Date(item.created_at).toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'long', timeStyle: 'short' })\n  : 'Unknown time';\n\n// ── Parse detection_method field ──────────────────────────────────────────────\n// New format from abuseDetection.ts: \"rule_match:sexual_18_plus\"\n// or plain: \"ai_analysis\", \"hybrid\", \"keyword\", \"rule_match\"\nconst rawMethod = item.detection_method || '';\nconst methodParts = rawMethod.split(':');\nconst detectionMethodRaw = methodParts[0] || 'rule_match';\nconst categoryRaw = methodParts[1] || '';\n\n// Human-readable detection method label\nconst methodLabels = {\n  rule_match:   '🔍 Rule Engine',\n  ai_analysis:  '🤖 AI Analysis',\n  hybrid:       '🔍🤖 Hybrid (Rule + AI)',\n  keyword:      '🔍 Keyword Match',\n};\nconst detectionLabel = methodLabels[detectionMethodRaw] || `🔍 ${detectionMethodRaw}`;\n\n// Human-readable category label\nconst categoryLabels = {\n  sexual_18_plus:                '🔞 Sexual / 18+ Content',\n  grooming_or_predator_behavior: '🎭 Grooming / Predator Behavior',\n  violence_or_abuse_disclosure:  '👊 Violence / Abuse Disclosure',\n  self_harm_or_suicide:          '💔 Self-Harm / Suicide Risk',\n  drugs_or_illegal_activity:     '💊 Drugs / Illegal Activity',\n  dark_web_hacking_or_cybercrime:'💻 Dark Web / Hacking / Cybercrime',\n  bullying_or_harassment:        '😤 Bullying / Harassment',\n  personal_information_sharing:  '📍 Personal Information Sharing',\n  extremism_or_dangerous_groups: '☠️ Extremism / Dangerous Groups',\n  other_unsafe_behavior:         '⚠️ Other Unsafe Behavior',\n  safe:                          '✅ Safe',\n};\nconst categoryLabel = categoryRaw\n  ? (categoryLabels[categoryRaw] || categoryRaw.replace(/_/g, ' ').replace(/\\b\\w/g, c => c.toUpperCase()))\n  : 'Not specified';\n\n// ── Parse emails_to_notify ────────────────────────────────────────────────────\nlet emailsToNotify = [];\ntry {\n  if (Array.isArray(item.emails_to_notify)) {\n    emailsToNotify = item.emails_to_notify;\n  } else if (typeof item.emails_to_notify === 'string') {\n    const parsed = JSON.parse(item.emails_to_notify);\n    emailsToNotify = Array.isArray(parsed) ? parsed : [parsed];\n  }\n} catch(e) {\n  emailsToNotify = [];\n}\n\n// ── Severity styling ──────────────────────────────────────────────────────────\nconst severityColors = {\n  critical: { bg: '#FFF0F0', border: '#7F1D1D', banner: '#991B1B', icon: '🚨', label: 'CRITICAL SEVERITY', subjectEmoji: '🚨' },\n  high:     { bg: '#FFF0F0', border: '#DC2626', banner: '#DC2626', icon: '🔴', label: 'HIGH SEVERITY',     subjectEmoji: '🔴' },\n  medium:   { bg: '#FFFBEB', border: '#D97706', banner: '#D97706', icon: '⚠️', label: 'MEDIUM SEVERITY',   subjectEmoji: '⚠️' },\n  low:      { bg: '#F0F9FF', border: '#2563EB', banner: '#2563EB', icon: '📋', label: 'LOW SEVERITY',      subjectEmoji: '📋' },\n};\nconst colors = severityColors[severityLevel] || severityColors.medium;\n\n// ── Extra critical-only banner ───────────────────────────────────────────────\nconst criticalBanner = severityLevel === 'critical'\n  ? `\n          <!-- CRITICAL URGENT BANNER -->\n          <tr>\n            <td style=\"background-color:#450A0A;padding:16px 40px;text-align:center;\">\n              <span style=\"color:#FCA5A5;font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;\">🚨 IMMEDIATE ACTION REQUIRED — CRITICAL ALERT 🚨</span>\n            </td>\n          </tr>`\n  : '';\n\nconst htmlEmail = `\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Child Safety Alert</title>\n</head>\n<body style=\"margin:0;padding:0;background-color:#F3F4F6;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;\">\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color:#F3F4F6;padding:40px 20px;\">\n    <tr>\n      <td align=\"center\">\n        <table width=\"600\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px;width:100%;\">\n\n          <!-- Header -->\n          <tr>\n            <td style=\"background:linear-gradient(135deg,#1E293B 0%,#334155 100%);border-radius:12px 12px 0 0;padding:32px 40px;text-align:center;\">\n              <p style=\"margin:0 0 8px 0;color:#94A3B8;font-size:13px;text-transform:uppercase;letter-spacing:2px;font-weight:600;\">SafeChat Child Protection System</p>\n              <h1 style=\"margin:0;color:#FFFFFF;font-size:26px;font-weight:700;letter-spacing:-0.5px;\">🛡️ Child Safety Alert</h1>\n              <p style=\"margin:12px 0 0 0;color:#CBD5E1;font-size:14px;\">Immediate attention may be required</p>\n            </td>\n          </tr>\n\n          ${criticalBanner}\n\n          <!-- Severity Banner -->\n          <tr>\n            <td style=\"background-color:${colors.banner};padding:14px 40px;text-align:center;\">\n              <span style=\"color:#FFFFFF;font-size:15px;font-weight:700;letter-spacing:1px;\">${colors.icon} ${colors.label} ALERT</span>\n            </td>\n          </tr>\n\n          <!-- Body -->\n          <tr>\n            <td style=\"background-color:#FFFFFF;padding:36px 40px;\">\n\n              <p style=\"margin:0 0 24px 0;color:#374151;font-size:15px;line-height:1.6;\">\n                Our child safety monitoring system has detected a potentially concerning message. Please review the details below and take appropriate action if necessary.\n              </p>\n\n              <!-- Student Info Card -->\n              <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;margin-bottom:24px;\">\n                <tr>\n                  <td style=\"padding:20px 24px;\">\n                    <p style=\"margin:0 0 4px 0;color:#64748B;font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700;\">Student Information</p>\n                    <p style=\"margin:0;color:#1E293B;font-size:20px;font-weight:700;\">👤 ${displayName}</p>\n                    <p style=\"margin:6px 0 0 0;color:#64748B;font-size:13px;\">Alert detected: ${createdAt} (UTC)</p>\n                  </td>\n                </tr>\n              </table>\n\n              <!-- Severity + Detection + Category Row -->\n              <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin-bottom:24px;\">\n                <tr>\n                  <td width=\"31%\" style=\"background-color:${colors.bg};border:1px solid ${colors.border};border-radius:10px;padding:14px 16px;vertical-align:top;\">\n                    <p style=\"margin:0 0 4px 0;color:#64748B;font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700;\">Severity</p>\n                    <p style=\"margin:0;color:${colors.border};font-size:16px;font-weight:700;\">${colors.icon} ${severityLevel.toUpperCase()}</p>\n                  </td>\n                  <td width=\"3%\"></td>\n                  <td width=\"31%\" style=\"background-color:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px 16px;vertical-align:top;\">\n                    <p style=\"margin:0 0 4px 0;color:#64748B;font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700;\">Detection</p>\n                    <p style=\"margin:0;color:#1E293B;font-size:14px;font-weight:700;\">${detectionLabel}</p>\n                  </td>\n                  <td width=\"3%\"></td>\n                  <td width=\"32%\" style=\"background-color:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px 16px;vertical-align:top;\">\n                    <p style=\"margin:0 0 4px 0;color:#64748B;font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700;\">Category</p>\n                    <p style=\"margin:0;color:#1E293B;font-size:13px;font-weight:700;\">${categoryLabel}</p>\n                  </td>\n                </tr>\n              </table>\n\n              <!-- Flagged Message -->\n              <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin-bottom:28px;\">\n                <tr>\n                  <td style=\"background-color:${colors.bg};border-left:4px solid ${colors.border};border-radius:0 8px 8px 0;padding:20px 24px;\">\n                    <p style=\"margin:0 0 8px 0;color:#64748B;font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700;\">💬 Flagged Message</p>\n                    <p style=\"margin:0;color:#1E293B;font-size:15px;line-height:1.7;font-style:italic;\">&ldquo;${flaggedMessage.replace(/</g,'&lt;').replace(/>/g,'&gt;')}&rdquo;</p>\n                  </td>\n                </tr>\n              </table>\n\n              <!-- Action Required -->\n              <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;margin-bottom:32px;\">\n                <tr>\n                  <td style=\"padding:20px 24px;\">\n                    <p style=\"margin:0 0 10px 0;color:#1D4ED8;font-size:14px;font-weight:700;\">📋 Recommended Actions</p>\n                    <ul style=\"margin:0;padding-left:20px;color:#374151;font-size:14px;line-height:1.9;\">\n                      <li>Review the flagged message carefully</li>\n                      <li>Check in with the student privately and compassionately</li>\n                      <li>Document any findings according to school protocol</li>\n                      <li>Contact appropriate authorities if immediate risk is identified</li>\n                      <li>Inform parents/guardians as deemed appropriate</li>\n                    </ul>\n                  </td>\n                </tr>\n              </table>\n\n              <!-- ⚠️ AI DISCLAIMER BLOCK -->\n              <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color:#FFFBEB;border:2px dashed #F59E0B;border-radius:12px;margin-bottom:8px;\">\n                <tr>\n                  <td style=\"padding:0;\">\n                    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">\n                      <tr>\n                        <td style=\"background-color:#F59E0B;border-radius:10px 10px 0 0;padding:12px 24px;text-align:center;\">\n                          <span style=\"color:#FFFFFF;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;\">⚠️ &nbsp; Important Disclaimer &nbsp; ⚠️</span>\n                        </td>\n                      </tr>\n                    </table>\n                    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">\n                      <tr>\n                        <td style=\"padding:22px 26px 24px 26px;\">\n                          <p style=\"margin:0 0 14px 0;color:#92400E;font-size:15px;font-weight:800;text-align:center;text-transform:uppercase;letter-spacing:0.5px;\">🤖 Fully Automated AI Detection — No Human Review Involved</p>\n                          <p style=\"margin:0 0 16px 0;color:#78350F;font-size:14px;line-height:1.85;text-align:center;\">\n                            This alert was generated entirely by an AI-powered detection system. No human has reviewed or verified this message prior to sending. While our system is designed to identify potentially concerning content, <strong>false positives may occasionally occur.</strong> We strongly encourage you to apply your own professional judgment when assessing this alert.\n                          </p>\n                          <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin-bottom:16px;\">\n                            <tr><td style=\"border-top:1px solid #FCD34D;\"></td></tr>\n                          </table>\n                          <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;\">\n                            <tr>\n                              <td style=\"padding:16px 20px;\">\n                                <p style=\"margin:0 0 6px 0;color:#92400E;font-size:13px;font-weight:800;\">📩 Noticed a False Detection? Help Us Improve.</p>\n                                <p style=\"margin:0;color:#78350F;font-size:13px;line-height:1.8;\">\n                                  If you believe this alert was triggered incorrectly, we kindly ask you to <strong>forward this email to our team</strong>. Your feedback is invaluable — every report helps us refine and improve our AI detection system to better protect children and reduce unnecessary alerts in the future.\n                                </p>\n                              </td>\n                            </tr>\n                          </table>\n                        </td>\n                      </tr>\n                    </table>\n                  </td>\n                </tr>\n              </table>\n              <!-- END DISCLAIMER -->\n\n            </td>\n          </tr>\n\n          <!-- Footer -->\n          <tr>\n            <td style=\"background-color:#1E293B;border-radius:0 0 12px 12px;padding:24px 40px;text-align:center;\">\n              <p style=\"margin:0 0 6px 0;color:#94A3B8;font-size:12px;\">This is an automated alert from the SafeChat Child Protection System.</p>\n              <p style=\"margin:0;color:#64748B;font-size:11px;\">Please do not reply to this email. Handle all concerns through your school's established protocols.</p>\n            </td>\n          </tr>\n\n        </table>\n      </td>\n    </tr>\n  </table>\n</body>\n</html>\n`;\n\nconst subject = `${colors.subjectEmoji} [${colors.label}] Safety Alert: Message from ${displayName}`;\n\nreturn emailsToNotify.map(email => ({\n  json: {\n    toEmail: email,\n    subject,\n    htmlBody: htmlEmail,\n    displayName,\n    severityLevel,\n    alertId: item.id\n  }\n}));"
+      },
+      "id": "5a546202-a6e9-48d6-be24-2cb2c52c3d9d",
+      "name": "Build Email Content",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.toEmail }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.htmlBody }}",
+        "options": {
+          "senderName": "SafeChat Safety System"
+        }
+      },
+      "id": "52e6a3d3-a6bd-4285-949e-b5d188c815bc",
+      "name": "Send Safety Alert Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1344,
+        384
+      ],
+      "webhookId": "ad6bcd6c-9be1-45ca-97ee-ed104fbe0bd7",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "IJRLqmKuZcZwaQaG",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Poll Every 2 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Fetch New Safety Alerts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch New Safety Alerts": {
+      "main": [
+        [
+          {
+            "node": "Has New Alerts?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has New Alerts?": {
+      "main": [
+        [
+          {
+            "node": "Build Email Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Email Content": {
+      "main": [
+        [
+          {
+            "node": "Send Safety Alert Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1dee566f-82da-4f53-8f61-55effe90960e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8ce88fae4dfadb1a5a3d6a56f98f6ff359e5afd85724508b22ce70b22249301a"
+  },
+  "id": "oNU42Lx91DCfEHLQ",
+  "tags": [
+    {
+      "updatedAt": "2026-03-13T21:39:02.879Z",
+      "createdAt": "2026-03-13T21:39:02.879Z",
+      "id": "B4L1kYDB866HfGuR",
+      "name": "child-safety"
+    },
+    {
+      "updatedAt": "2025-09-21T20:44:42.749Z",
+      "createdAt": "2025-09-21T20:44:42.749Z",
+      "id": "eOxlrWu0PjsFg9Nb",
+      "name": "Yugesh"
+    }
+  ]
+}

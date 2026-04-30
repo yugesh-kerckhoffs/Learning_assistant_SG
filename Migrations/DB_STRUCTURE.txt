@@ -1,0 +1,222 @@
+# ================================================
+# Sendelightgifts   AiBuddy - Complete Database Schema
+# ================================================
+
+# 1. Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+# 2. Create profiles table (stores user names and info)
+CREATE TABLE public.profiles (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  display_name TEXT NOT NULL,
+  user_level INTEGER DEFAULT 1,
+  session_start_time BIGINT DEFAULT EXTRACT(EPOCH FROM NOW()) * 1000,
+  terms_accepted BOOLEAN DEFAULT NULL,
+  terms_accepted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+  school_id UUID DEFAULT NULL,
+  assigned_teacher_id UUID DEFAULT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+# 3. Create chat_history table
+CREATE TABLE public.chat_history (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
+  message_text TEXT NOT NULL,
+  mode TEXT DEFAULT 'general',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+# 4. Create generated_images table
+CREATE TABLE public.generated_images (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  prompt TEXT NOT NULL,
+  mode TEXT DEFAULT 'general',
+  image_data TEXT,
+  mime_type TEXT,
+  thumbnail_data TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+# 5. Create generated_videos table
+CREATE TABLE public.generated_videos (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  prompt TEXT NOT NULL,
+  video_data TEXT,
+  mime_type TEXT,
+  thumbnail_data TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+# 6. Create memory_game_sessions table
+CREATE TABLE public.memory_game_sessions (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  level_reached INTEGER NOT NULL,
+  moves_used INTEGER NOT NULL,
+  completed BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+# 7. Create colors_shapes_sessions table
+CREATE TABLE public.colors_shapes_sessions (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  game_type TEXT NOT NULL CHECK (game_type IN ('colors', 'shapes')),
+  level_reached INTEGER NOT NULL,
+  completed BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+# 8. Create user_level_history table
+CREATE TABLE public.user_level_history (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  level INTEGER NOT NULL,
+  reached_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+# 9. Create schools table
+CREATE TABLE public.schools (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  school_name TEXT NOT NULL UNIQUE,
+  principal_email TEXT NOT NULL,
+  counselor_email TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+# 10. Create teachers table
+CREATE TABLE public.teachers (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  school_id UUID REFERENCES public.schools(id) ON DELETE CASCADE,
+  teacher_name TEXT NOT NULL,
+  teacher_email TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+# 11. Create safety_alerts table
+CREATE TABLE public.safety_alerts (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  flagged_message TEXT NOT NULL,
+  detection_method TEXT NOT NULL,
+  severity_level TEXT NOT NULL,
+  emails_sent_to TEXT[],
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+# 12. Add foreign keys to profiles
+ALTER TABLE public.profiles
+  ADD CONSTRAINT fk_profiles_school FOREIGN KEY (school_id) REFERENCES public.schools(id),
+  ADD CONSTRAINT fk_profiles_teacher FOREIGN KEY (assigned_teacher_id) REFERENCES public.teachers(id);
+
+# ================================================
+# INDEXES
+# ================================================
+
+CREATE INDEX idx_chat_history_user_id ON public.chat_history(user_id);
+CREATE INDEX idx_chat_history_created_at ON public.chat_history(created_at);
+CREATE INDEX idx_generated_images_user_id ON public.generated_images(user_id);
+CREATE INDEX idx_generated_videos_user_id ON public.generated_videos(user_id);
+CREATE INDEX idx_memory_game_user_id ON public.memory_game_sessions(user_id);
+CREATE INDEX idx_colors_shapes_user_id ON public.colors_shapes_sessions(user_id);
+CREATE INDEX idx_user_level_history_user_id ON public.user_level_history(user_id);
+CREATE INDEX idx_teachers_school_id ON public.teachers(school_id);
+CREATE INDEX idx_profiles_terms_accepted ON public.profiles(terms_accepted);
+CREATE INDEX idx_profiles_school_id ON public.profiles(school_id);
+CREATE INDEX idx_profiles_teacher_id ON public.profiles(assigned_teacher_id);
+CREATE INDEX idx_safety_alerts_user_id ON public.safety_alerts(user_id);
+CREATE INDEX idx_safety_alerts_created_at ON public.safety_alerts(created_at DESC);
+
+# ================================================
+# ROW LEVEL SECURITY (RLS)
+# ================================================
+
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chat_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.generated_images ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.generated_videos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.memory_game_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.colors_shapes_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_level_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.schools ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.safety_alerts ENABLE ROW LEVEL SECURITY;
+
+-- Profiles
+CREATE POLICY "Users can view their own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can insert their own profile" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- Chat History
+CREATE POLICY "Users can view their own chat history" ON public.chat_history FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own chat messages" ON public.chat_history FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Generated Images
+CREATE POLICY "Users can view their own generated images" ON public.generated_images FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own image generations" ON public.generated_images FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Generated Videos
+CREATE POLICY "Users can view their own generated videos" ON public.generated_videos FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own video generations" ON public.generated_videos FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Memory Game
+CREATE POLICY "Users can view their own memory game sessions" ON public.memory_game_sessions FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own memory game sessions" ON public.memory_game_sessions FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Colors & Shapes
+CREATE POLICY "Users can view their own colors & shapes sessions" ON public.colors_shapes_sessions FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own colors & shapes sessions" ON public.colors_shapes_sessions FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- User Level History
+CREATE POLICY "Users can view their own level history" ON public.user_level_history FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own level history" ON public.user_level_history FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Schools (public read)
+CREATE POLICY "Anyone can view schools" ON public.schools FOR SELECT USING (true);
+
+-- Teachers (public read)
+CREATE POLICY "Anyone can view teachers" ON public.teachers FOR SELECT USING (true);
+
+-- Safety Alerts
+CREATE POLICY "Admins can view all alerts" ON public.safety_alerts FOR SELECT USING (true);
+CREATE POLICY "System can insert alerts" ON public.safety_alerts FOR INSERT WITH CHECK (true);
+
+# ================================================
+# TRIGGER: Auto-create profile on signup
+# ================================================
+
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, display_name)
+  VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'display_name', 'Friend'));
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+CREATE TABLE IF NOT EXISTS public.api_health_logs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  checked_at timestamptz NOT NULL DEFAULT now(),
+  function_name text NOT NULL,
+  status text NOT NULL, -- 'healthy', 'error', 'unreachable'
+  response_time_ms integer,
+  error_message text,
+  overall_status text
+);
+
+-- Index for quick lookups
+CREATE INDEX idx_health_logs_checked_at ON public.api_health_logs(checked_at DESC);
+CREATE INDEX idx_health_logs_status ON public.api_health_logs(status);
+
+-- Allow service role to insert
+ALTER TABLE public.api_health_logs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Service role full access" ON public.api_health_logs FOR ALL USING (true) WITH CHECK (true);
