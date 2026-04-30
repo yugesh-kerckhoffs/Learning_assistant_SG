@@ -60,9 +60,9 @@ export const colorsData: Record<number, { color: string; name: string }[]> = {
 };
 
 export const bannerMessages = [
-  { text: '🚀 App in development! Found a bug? Report it to <a href="mailto:info@sendelightgifts.us">info@sendelightgifts.us</a>', icon: '🔔' },
-  { text: '💡 Have ideas for new features? Email us at <a href="mailto:info@sendelightgifts.us">info@sendelightgifts.us</a>', icon: '✨' },
-  { text: '🎯 Help us improve! Share your feedback at <a href="mailto:info@sendelightgifts.us">info@sendelightgifts.us</a>', icon: '💬' },
+  { text: '🚀 App in development! Found a bug? Report it to <a href="mailto:info@sendelightgifts.com">info@sendelightgifts.com</a>', icon: '🔔' },
+  { text: '💡 Have ideas for new features? Email us at <a href="mailto:info@sendelightgifts.com">info@sendelightgifts.com</a>', icon: '✨' },
+  { text: '🎯 Help us improve! Share your feedback at <a href="mailto:info@sendelightgifts.com">info@sendelightgifts.com</a>', icon: '💬' },
 ];
 
 export const gridConfigs = [

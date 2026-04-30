@@ -180,7 +180,7 @@ const LandingPage: React.FC = () => {
             <div className="contact-info">
               <h3 className="contact-info-title">Contact Information</h3>
               <div className="contact-item"><span className="contact-icon">🏢</span><div><div className="contact-label">Address</div><div className="contact-value">Sendelightgifts,<br />Unit 22,  <br />Business & Innovation Centre,<br /> Sunderland Enterprise Park,Sunderland – SR5 2TA, UK</div></div></div>
-              <div className="contact-item"><span className="contact-icon">📧</span><div><div className="contact-label">Email</div><div className="contact-value">info@sendelightgifts.us</div></div></div>
+              <div className="contact-item"><span className="contact-icon">📧</span><div><div className="contact-label">Email</div><div className="contact-value">info@sendelightgifts.com</div></div></div>
               <div className="contact-item"><span className="contact-icon">🌍</span><div><div className="contact-label">Availability</div><div className="contact-value">24/7 Support</div></div></div>
               <div className="contact-item"><span className="contact-icon">⚡</span><div><div className="contact-label">Response Time</div><div className="contact-value">Within 24 hours</div></div></div>
             </div>

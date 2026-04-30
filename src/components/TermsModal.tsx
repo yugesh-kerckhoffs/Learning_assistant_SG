@@ -110,7 +110,7 @@ const TermsModal: React.FC<TermsModalProps> = ({ readOnly = false, onClose }) =>
               <li><strong>Right to Data Portability (Art. 20):</strong> You have the right to receive personal data in a structured, commonly used, machine-readable format.</li>
               <li><strong>Right to Object (Art. 21):</strong> You have the right to object to processing based on legitimate interests or direct marketing.</li>
               <li><strong>Rights related to Automated Decision-Making (Art. 22):</strong> You have the right not to be subject to decisions based solely on automated processing which produce legal effects.</li>
-              <li>To exercise any of these rights, contact us at info@sendelightgifts.us. We will respond within one month as required by GDPR Article 12.</li>
+              <li>To exercise any of these rights, contact us at info@sendelightgifts.com. We will respond within one month as required by GDPR Article 12.</li>
             </ul>
           </div>
 
@@ -234,7 +234,7 @@ const TermsModal: React.FC<TermsModalProps> = ({ readOnly = false, onClose }) =>
             <ul className="terms-list">
               <li><strong>Data Controller:</strong> Sendelightgifts, Inc.</li>
               <li><strong>Address:</strong> Unit 22, Business & Innovation Centre, Sunderland Enterprise Park, Sunderland – SR5 2TA, UK</li>
-              <li><strong>Email:</strong> info@sendelightgifts.us</li>
+              <li><strong>Email:</strong> info@sendelightgifts.com</li>
               <li><strong>Website:</strong> Sendelightgifts.com</li>
               <li><strong>Response Time:</strong> We aim to respond to all data subject requests within one month as required by GDPR.</li>
               <li>For data protection enquiries or to exercise your rights, contact us using the details above.</li>
